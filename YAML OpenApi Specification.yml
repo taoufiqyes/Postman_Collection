@@ -1,0 +1,3748 @@
+
+"openapi": "3.0.0"
+"info":
+  "title": "Run in Postman"
+  "description": "### [https://developers.deliverect.com](https://developers.deliverect.com) Deliverect allows restaurants to directly connect channels like UberEats, Takeaway.com, Glovo and others with their POS system. More info on features and platforms supported on [https://deliverect.com/](https://deliverect.com/) This API can be used to integrate additional channels or POS systems, but also by bigger restaurants to help them with reporting and stock management Please fill in this [form](https://www.deliverect.com/en-be/become-a-partner) if you would like to start your integration with Deliverect. We are looking forward to welcoming you as a partner! --- For any webhooks that we call, you can use whitelisting. The prefered way is to whitelist our domains, since that allows us to add/change IPs without impacting you. But currently these are the IPs we use Production: You will be sending data to this IP Incoming: 104.155.92.129, 34.77.203.223 Your endpoint will receive calls from these IP's Outgoing: 35.241.160.154, 35.241.180.107, 104.199.82.58, 34.79.19.218 Staging: Incoming: 34.76.5.55 Outgoing: 35.205.49.4, 35.195.152.77, 34.77.114.185 --- If building an integration with us, please make sure your code can potentially support several environments/endpoints with different sets of client id/secret and different HMAC secrets. Your integration should also be able to identify to which environment customer belongs(i.e. environment1.api.deliverect.com, environment2.api.deliverect.com, etc.) and send requests appropriately. ---"
+  "version": "1.0.0"
+"servers":
+  -
+    "url": "https://api.staging.deliverect.com"
+  -
+    "url": "https://integrator.com"
+  -
+    "url": "http://{{webhookurl}}orders"
+  -
+    "url": "http://{{webhookurl}}products"
+  -
+    "url": "http://{{yoursetwebhookurl}}"
+  -
+    "url": "http://{{https"
+  -
+    "url": "http://{{resturl}}products"
+"components":
+  "securitySchemes":
+    "bearerAuth":
+      "type": "http"
+      "scheme": "bearer"
+    "oauth2Auth":
+      "type": "http"
+      "scheme": "oauth2"
+"security":
+  -
+    "oauth2Auth": []
+"tags":
+  -
+    "name": "Authentication"
+    "description": "A client_id and client_secret are unique credentials provided to any partner beginning an integration with Deliverect. These can be used to access all customer accounts which we've connected to your partner account. If you have already been provided a partner account and credentials, you can obtain an OAuth token with our Machine to Machine token endpoint and begin making calls with our API. Don't forget to cache this token. You should only request a new one when your current one has expired. You can use this tool(https://jwt.io/) to see the contents of the token. Only certified integrations will be provided partner credentials for our production environment. **Never share your partner credentials with anyone else** API Credential Please be aware that we provide one **clientId** and one **clientSecret** which allows access to all connected customer accounts and these credentials don't change per integrated account. ### When we call you With every call we make to an endpoint on your system we include an HMAC header. HMAC stands for Keyed-Hashing for Message Authentication code. Its a HASH signature that we set based on the payload and a pre-shared secret. With this HASH signature you can validate that we are the ones calling your endpoints. We use the SHA256 cryptographic hash function to calculate the hash. For more information about HMAC and how it works please visit [wikipedia](https://en.wikipedia.org/wiki/HMAC). When calculating the HASH on your end, make sure you do this based on the payload as its received and don't process, parse or otherwise touch it before."
+  -
+    "name": "POS API"
+    "description": "As a POS you can find all the methods to integrate with us here. They all require a token in order to work. You can login to our [backoffice](https://frontend.staging.deliverect.com) to see your orders, and go to the test orders page to create orders using your current menu. This allows you to test all components of the integration. The webhook part of this API can also be used for simple integrations that only require the orders. To receive these webhooks we can add your Reporting endpoint to the location. The polling of orders should only be used when your system goes offline and you want to get the missed orders for a short time frame. This should not be used for the constant polling of orders. To receive orders you should have an endpoint publicly available that can be used. For further guides and information on building a POS integration, see articles in our API help section. [https://deliverect.zendesk.com/hc/en-us/sections/360005957638-POS-API](https://deliverect.zendesk.com/hc/en-us/sections/360005957638-POS-API)"
+  -
+    "name": "POS API > Deliverect Endpoints"
+    "description": "These are endpoints hosted on the deliverect domain. There is a staging environment: https://api.staging.deliverect.com and a production environment https://api.deliverect.com"
+  -
+    "name": "POS API > Partner Webhooks"
+    "description": "Webhooks are endpoints Deliverect will call. It's up to the integrator to make sure these are hosted on their domain. This URL can be configured per location in Deliverect. We also send an HMAC header so that you can verify that orders are indeed coming form Deliverect. The HMAC secret is configured for every integration partner and will be communicated to you in a secure way. Before an HMAC secret is assigned to you, the request is signed using the channelLinkId as HMAC secret. Before certifying the integration, a secure HMAC secret should be set. More than one reporting endpoint can be configured. This way the data can be sent to multiple systems, so for instance the POS, but also the accounting system. At the moment we only support one secret key per customer, not per reporting endpoint."
+  -
+    "name": "Channel API"
+    "description": "If you're a channel, a system where orders get created, and you want to integrate with us, this is the API you can use. This will allow your orders to be injected in the workflow of restaurants. Orders processed through this API follow the same flow as any other order processed by Deliverect. There are two parts, everything under 'Endpoints' are methods that need to be called on our servers. Everything under 'Webhooks' are methods that need to be available on your server and that Deliverect will call. For further guides and information on building a Channel integration, see articles in our API help section. [https://deliverect.zendesk.com/hc/en-us/sections/360005957658-Channel-API](https://deliverect.zendesk.com/hc/en-us/sections/360005957658-Channel-API)"
+  -
+    "name": "Channel API > Deliverect Endpoints"
+    "description": "These are endpoints hosted on the deliverect domain. There is a staging environment: https://api.staging.deliverect.com and a production environment https://api.deliverect.com"
+  -
+    "name": "Channel API > Partner Webhooks"
+    "description": "Before orders can be sent to Deliverect, the right PLU's and menu's should be available on the Channel. This could of course be done maually, but this is prone to mistakes and menu's often change. (additional products, new prices, etc.) Therefore the better way is to implement the menu push webhook so that the online menu can be updated with new information from the POS and/or Deliverect Besides the menu, there's also an endpoint where you can receive status updates on orders that were pushed to Deliverect. This info can be used to optimise when drivers are sent to pick up the food."
+  -
+    "name": "Dispatch API"
+    "description": "If you're a delivery service or Logistics service and you want to integrate with us, this is the API you can use. Every time an order needs to be delivered your API will get called, you can then send back the details for delivery. Existing orders might be updated if orders can be combined according to the rules set in Deliverect."
+  -
+    "name": "Dispatch API > Deliverect Endpoints"
+  -
+    "name": "Dispatch API > Partner Webhooks"
+  -
+    "name": "Store API"
+  -
+    "name": "Store API > Deliverect Endpoints"
+  -
+    "name": "KDS API"
+  -
+    "name": "KDS API > Deliverect Endpoint"
+  -
+    "name": "KDS API > Partner Webhooks"
+"paths":
+  "/oauth/token":
+    "post":
+      "tags":
+        - "Authentication"
+      "summary": "Machine 2 Machine Access Token"
+      "requestBody":
+        "content":
+          "*/*":
+            "schema":
+              "type": "string"
+              "example":
+                "client_id": "{{clientId}}"
+                "client_secret": "{{clientSecret}}"
+                "audience": "https://api.deliverect.com"
+                "grant_type": "{{client_credentials}}"
+      "parameters":
+        -
+          "name": "content-type"
+          "in": "header"
+          "schema":
+            "type": "string"
+          "example": "application/json"
+      "responses":
+        "200":
+          "description": "OK"
+          "headers":
+            "Date":
+              "schema":
+                "type": "string"
+                "example": "Wed, 20 Feb 2019 13:18:00 GMT"
+            "Content-Type":
+              "schema":
+                "type": "string"
+                "example": "application/json"
+            "Content-Length":
+              "schema":
+                "type": "integer"
+                "example": "828"
+            "Connection":
+              "schema":
+                "type": "string"
+                "example": "keep-alive"
+            "X-Auth0-RequestId":
+              "schema":
+                "type": "string"
+                "example": "521b1266bf81fec2fb6b"
+            "X-RateLimit-Limit":
+              "schema":
+                "type": "integer"
+                "example": "30"
+            "X-RateLimit-Remaining":
+              "schema":
+                "type": "integer"
+                "example": "29"
+            "X-RateLimit-Reset":
+              "schema":
+                "type": "integer"
+                "example": "1550668681"
+            "Cache-Control":
+              "schema":
+                "type": "string"
+                "example": "private, no-store, no-cache, must-revalidate, post-check=0, pre-check=0"
+            "Pragma":
+              "schema":
+                "type": "string"
+                "example": "no-cache"
+            "Strict-Transport-Security":
+              "schema":
+                "type": "string"
+                "example": "max-age=15724800"
+            "X-Robots-Tag":
+              "schema":
+                "type": "string"
+                "example": "noindex, nofollow, nosnippet, noarchive"
+          "content":
+            "application/json":
+              "schema":
+                "type": "object"
+              "example":
+                "access_token": "ey**-**-Q"
+                "expires_at": 1620899002
+                "token_type": "Bearer"
+                "scope": "genericPOS provisioning"
+        "401":
+          "description": "Unauthorized"
+          "headers":
+            "Date":
+              "schema":
+                "type": "string"
+                "example": "Wed, 20 Feb 2019 13:11:39 GMT"
+            "Content-Type":
+              "schema":
+                "type": "string"
+                "example": "application/json"
+            "Content-Length":
+              "schema":
+                "type": "integer"
+                "example": "60"
+            "Connection":
+              "schema":
+                "type": "string"
+                "example": "keep-alive"
+            "X-Auth0-RequestId":
+              "schema":
+                "type": "string"
+                "example": "1bb8a6bbea0c249b00dd"
+            "X-RateLimit-Limit":
+              "schema":
+                "type": "integer"
+                "example": "30"
+            "X-RateLimit-Remaining":
+              "schema":
+                "type": "integer"
+                "example": "29"
+            "X-RateLimit-Reset":
+              "schema":
+                "type": "integer"
+                "example": "1550668300"
+            "WWW-Authenticate":
+              "schema":
+                "type": "string"
+                "example": "Basic realm={{Users}}"
+            "Cache-Control":
+              "schema":
+                "type": "string"
+                "example": "private, no-store, no-cache, must-revalidate, post-check=0, pre-check=0"
+          "content":
+            "application/json":
+              "schema":
+                "type": "object"
+              "example":
+                "error": "access_denied"
+                "error_description": "Unauthorized"
+  "/productAndCategories":
+    "post":
+      "tags":
+        - "POS API > Deliverect Endpoints"
+      "summary": "Insert/update products and categories"
+      "description": "Insert/update Products The 'Source of Truth' in terms of product data and structure is almost always sourced from an integrated POS system. When a POS successfully syncs products with their unique identifiers (PLUs), these will be selected by the customer for inclusion in their menu(s). In turn, orders will be created with these same PLUs and injected into the POS via an ['Order Webhook'](https://developers.deliverect.com/reference/post-orders-webhook) This process does not necessarily need a complete transfer of products stored in the POS, but can involve only a subset of products i.e. 'Online Only products' which a customer can possibly flag as being suitable for selling online. ## Product Model For a full list of all product attributes, see the link below; https://developers.deliverect.com/page/glossary-product-insert Account and Location ID As you can see from the examples the Deliverect accountId and locationId are both set in the body content. These IDs are required and should be obtained via the Register POS webhook.Deleting products There is currently no way to directly delete a product. To achieve the desired effect, a list of products can be pushed again, in which products to be deleted are omitted. ## Duplicate products Where a duplicate PLU exists, the product sync will proceed, but only one of the duplicated items will be created. ## Product sync (GET Products) We require that all POS partners call this endpoint with POS products in response to a GET Request from Deliverect. See the section on Sync Products https://developers.deliverect.com/reference/get-products.Every call to this endpoint will either; **create**, **update** or **delete** products, based on the products that already exist in the specified location. > 📘 Menus vs Products > > We do expect products to be sourced from a POS, but don't have a facility to push structured menus built within a POS into Deliverect. > > This process of 'Menu Building' is fully handled in Deliverect (see guide on this [here](https://developers.deliverect.com/docs/create-a-menu)) > 📘 GTIN((Global Trade Item Number) > > The GTIN / EAN codes can be sent within the products objects but we are not validating them on our end yet! ## Product Configurations For more detailed guidelines on how to structure products and set e.g. price, tax, combos etc see the page below; https://developers.deliverect.com/page/product-configuration"
+      "requestBody":
+        "content":
+          "*/*":
+            "schema":
+              "type": "string"
+              "example":
+                "accountId": "5b****71c6489f0029****d4"
+                "locationId": "5c****ecc6489f0001****b8"
+                "products":
+                  -
+                    "productType": 1
+                    "plu": "PR03"
+                    "price": 900
+                    "priceLevels":
+                      "B1": 900
+                      "D1": 800
+                      "E1": 950
+                    "name": "Cheese Lovers Pizza"
+                    "posProductId": "DV-POS-3"
+                    "posCategoryIds": "DV-CAT-2 - set only for productType=1"
+                    "imageUrl": "https://cdn.pixabay.com/photo/2016/03/05/09/22/eat-1237432_960_720.png"
+                    "description": "Pizza made for cheese fanatics"
+                    "deliveryTax": 9000
+                    "takeawayTax": 9000
+                    "productTags":
+                      - 104
+                      - 108
+                      - 100
+                    "subProducts":
+                      - "6516732"
+                  -
+                    "productType": 1
+                    "plu": "PR04"
+                    "price": 750
+                    "priceLevels":
+                      "B1": 750
+                      "D1": 600
+                      "E1": 800
+                    "name": "BBQ Chicken Pizza"
+                    "posProductId": "DV-POS-4"
+                    "posCategoryIds": "DV-CAT-2"
+                    "imageUrl": ""
+                    "description": "The best BBQ Chicken Pizza in town"
+                    "deliveryTax": 9000
+                    "takeawayTax": 9000
+                    "productTags":
+                      - 104
+                      - 108
+                      - 100
+                    "subProducts":
+                      - "6516732"
+                  -
+                    "productType": 3
+                    "plu": "6516732"
+                    "name": "Extra topping"
+                    "posProductId": "6516732"
+                    "imageUrl": ""
+                    "description": "Select your extra topping"
+                    "subProducts":
+                      - "TP001"
+                      - "TP002"
+                    "min": 0
+                    "max": 2
+                  -
+                    "productType": 2
+                    "plu": "TP001"
+                    "price": 100
+                    "name": "Extra Cheese"
+                    "posProductId": "TP_POS-001"
+                    "imageUrl": ""
+                    "description": "Extra Cheezzzz"
+                    "deliveryTax": 9000
+                    "takeawayTax": 9000
+                  -
+                    "productType": 2
+                    "plu": "TP002"
+                    "price": 200
+                    "priceLevels":
+                      "B1": 900
+                      "D1": 800
+                      "E1": 950
+                    "name": "Extra Peperoni"
+                    "posProductId": "TP_POS-002"
+                    "imageUrl": ""
+                    "description": "Extra Peperoni"
+                    "deliveryTax": 9000
+                    "takeawayTax": 9000
+                "categories":
+                  -
+                    "name": "Pizza"
+                    "posCategoryId": "DV-CAT-2"
+                    "imageUrl": ""
+                "priceLevels":
+                  -
+                    "posId": "B1"
+                    "name": "Base"
+                  -
+                    "posId": "D1"
+                    "name": "Delivery"
+                  -
+                    "posId": "E1"
+                    "name": "Eat in"
+                  -
+                    "posId": "BD2020"
+                    "name": "Burger Deal 2020"
+      "parameters":
+        -
+          "name": "Content-Type"
+          "in": "header"
+          "schema":
+            "type": "string"
+          "example": "application/json"
+      "responses":
+        "default":
+          "description": "default"
+          "content":
+            "application/json":
+              "schema":
+                "type": "object"
+              "examples":
+                "example-0":
+                  "summary": "3-Meal Deal"
+                  "value":
+                    "products":
+                      "inserted": 2
+                      "updated": 0
+                      "deleted": 1
+                      "ignored": 0
+                    "modifiers":
+                      "inserted": 2
+                      "updated": 0
+                      "deleted": 1
+                      "ignored": 0
+                    "modifierGroups":
+                      "inserted": 2
+                      "updated": 0
+                      "deleted": 1
+                      "ignored": 0
+                    "bundles":
+                      "inserted": 1
+                      "updated": 0
+                      "deleted": 0
+                      "ignored": 0
+                    "priceLevels": 0
+                    "warnings": 0
+                    "errors": 0
+                "example-1":
+                  "summary": "4-Bundles (Product price overloads)"
+                  "value":
+                    "products":
+                      "inserted": 2
+                      "updated": 0
+                      "deleted": 1
+                      "ignored": 0
+                    "modifiers":
+                      "inserted": 2
+                      "updated": 0
+                      "deleted": 1
+                      "ignored": 0
+                    "modifierGroups":
+                      "inserted": 2
+                      "updated": 0
+                      "deleted": 1
+                      "ignored": 0
+                    "bundles":
+                      "inserted": 1
+                      "updated": 0
+                      "deleted": 0
+                      "ignored": 0
+                    "priceLevels": 0
+                    "warnings": 0
+                    "errors": 0
+                "example-2":
+                  "summary": "5-Modifier Groups (Price overloads)"
+                  "value":
+                    "products":
+                      "inserted": 2
+                      "updated": 0
+                      "deleted": 1
+                      "ignored": 0
+                    "modifiers":
+                      "inserted": 2
+                      "updated": 0
+                      "deleted": 1
+                      "ignored": 0
+                    "modifierGroups":
+                      "inserted": 2
+                      "updated": 0
+                      "deleted": 1
+                      "ignored": 0
+                    "bundles":
+                      "inserted": 1
+                      "updated": 0
+                      "deleted": 0
+                      "ignored": 0
+                    "priceLevels": 0
+                    "warnings": 0
+                    "errors": 0
+                "example-3":
+                  "summary": "6-Variant Products (Size Options)"
+                  "value":
+                    "products":
+                      "inserted": 2
+                      "updated": 0
+                      "deleted": 1
+                      "ignored": 0
+                    "modifiers":
+                      "inserted": 2
+                      "updated": 0
+                      "deleted": 1
+                      "ignored": 0
+                    "modifierGroups":
+                      "inserted": 2
+                      "updated": 0
+                      "deleted": 1
+                      "ignored": 0
+                    "bundles":
+                      "inserted": 1
+                      "updated": 0
+                      "deleted": 0
+                      "ignored": 0
+                    "priceLevels": 0
+                    "warnings": 0
+                    "errors": 0
+                "example-4":
+                  "summary": "7-Price Levels"
+                  "value":
+                    "products":
+                      "inserted": 2
+                      "updated": 0
+                      "deleted": 1
+                      "ignored": 0
+                    "modifiers":
+                      "inserted": 2
+                      "updated": 0
+                      "deleted": 1
+                      "ignored": 0
+                    "modifierGroups":
+                      "inserted": 2
+                      "updated": 0
+                      "deleted": 1
+                      "ignored": 0
+                    "bundles":
+                      "inserted": 1
+                      "updated": 0
+                      "deleted": 0
+                      "ignored": 0
+                    "priceLevels": 0
+                    "warnings": 0
+                    "errors": 0
+                "example-5":
+                  "summary": "8-Bottle Deposit"
+                  "value":
+                    "products":
+                      "inserted": 2
+                      "updated": 0
+                      "deleted": 1
+                      "ignored": 0
+                    "modifiers":
+                      "inserted": 2
+                      "updated": 0
+                      "deleted": 1
+                      "ignored": 0
+                    "modifierGroups":
+                      "inserted": 2
+                      "updated": 0
+                      "deleted": 1
+                      "ignored": 0
+                    "bundles":
+                      "inserted": 1
+                      "updated": 0
+                      "deleted": 0
+                      "ignored": 0
+                    "priceLevels": 0
+                    "warnings": 0
+                    "errors": 0
+                "example-6":
+                  "summary": "9-Meal Deal (with Variants)"
+                  "value":
+                    "products":
+                      "inserted": 2
+                      "updated": 0
+                      "deleted": 1
+                      "ignored": 0
+                    "modifiers":
+                      "inserted": 2
+                      "updated": 0
+                      "deleted": 1
+                      "ignored": 0
+                    "modifierGroups":
+                      "inserted": 2
+                      "updated": 0
+                      "deleted": 1
+                      "ignored": 0
+                    "bundles":
+                      "inserted": 1
+                      "updated": 0
+                      "deleted": 0
+                      "ignored": 0
+                    "priceLevels": 0
+                    "warnings": 0
+                    "errors": 0
+                "example-7":
+                  "summary": "PriceLevels"
+                  "value":
+                    "products":
+                      "inserted": 2
+                      "updated": 0
+                      "deleted": 1
+                      "ignored": 0
+                    "modifiers":
+                      "inserted": 0
+                      "updated": 0
+                      "deleted": 1
+                      "ignored": 0
+                    "modifierGroups":
+                      "inserted": 0
+                      "updated": 0
+                      "deleted": 1
+                      "ignored": 0
+                    "bundles":
+                      "inserted": 0
+                      "updated": 0
+                      "deleted": 0
+                      "ignored": 0
+                    "priceLevels": 4
+                    "warnings": 0
+                    "errors": 0
+                "example-8":
+                  "summary": "Location doesn't exist"
+                  "value":
+                    "error": "Location 5c****ecc6489f0001****b8 not found"
+                "example-9":
+                  "summary": "Account doesn't exist"
+                  "value":
+                    "error": "Account 5b****71c6489f0029****d4 not found"
+            "text/plain":
+              "schema":
+                "type": "string"
+              "example": null
+        "200":
+          "description": "OK"
+          "headers":
+            "Server":
+              "schema":
+                "type": "string"
+                "example": "nginx/1.11.10"
+            "Date":
+              "schema":
+                "type": "string"
+                "example": "Mon, 20 May 2019 11:01:22 GMT"
+            "Content-Type":
+              "schema":
+                "type": "string"
+                "example": "text/html"
+            "Content-Length":
+              "schema":
+                "type": "integer"
+                "example": "214"
+            "Connection":
+              "schema":
+                "type": "string"
+                "example": "keep-alive"
+          "content":
+            "application/json":
+              "schema":
+                "type": "object"
+              "examples":
+                "example-0":
+                  "summary": "1-Basic Example"
+                  "value":
+                    "products":
+                      "inserted": 2
+                      "updated": 0
+                      "deleted": 1
+                      "ignored": 0
+                    "modifiers":
+                      "inserted": 0
+                      "updated": 0
+                      "deleted": 1
+                      "ignored": 0
+                    "modifierGroups":
+                      "inserted": 0
+                      "updated": 0
+                      "deleted": 1
+                      "ignored": 0
+                    "bundles":
+                      "inserted": 0
+                      "updated": 0
+                      "deleted": 0
+                      "ignored": 0
+                    "priceLevels": 0
+                    "warnings": 0
+                    "errors": 0
+                "example-1":
+                  "summary": "2-Nested Modifiers"
+                  "value":
+                    "products":
+                      "inserted": 2
+                      "updated": 0
+                      "deleted": 1
+                      "ignored": 0
+                    "modifiers":
+                      "inserted": 0
+                      "updated": 0
+                      "deleted": 1
+                      "ignored": 0
+                    "modifierGroups":
+                      "inserted": 0
+                      "updated": 0
+                      "deleted": 1
+                      "ignored": 0
+                    "bundles":
+                      "inserted": 0
+                      "updated": 0
+                      "deleted": 0
+                      "ignored": 0
+                    "priceLevels": 0
+                    "warnings": 0
+                    "errors": 0
+                "example-2":
+                  "summary": "Bottle Deposit"
+                  "value":
+                    "products":
+                      "inserted": 3
+                      "updated": 0
+                      "deleted": 0
+                      "ignored": 0
+                    "modifiers":
+                      "inserted": 0
+                      "updated": 0
+                      "deleted": 1
+                      "ignored": 0
+                    "modifierGroups":
+                      "inserted": 1
+                      "updated": 0
+                      "deleted": 0
+                      "ignored": 0
+                    "bundles":
+                      "inserted": 0
+                      "updated": 0
+                      "deleted": 0
+                      "ignored": 0
+                    "priceLevels": 0
+                    "warnings": 0
+                    "errors": 0
+  "/productCategories":
+    "get":
+      "tags":
+        - "POS API > Deliverect Endpoints"
+      "summary": "Categories for account"
+      "description": "Receive the total number of categories that have been pushed to Deliverect for a customer’s account. You can use this endpoint to cross-check."
+      "security":
+        -
+          "bearerAuth": []
+      "parameters":
+        -
+          "name": "where"
+          "in": "query"
+          "schema":
+            "type": "string"
+          "example":
+            "account": "{{accountId}}"
+      "responses":
+        "default":
+          "description": "default"
+          "content":
+            "text/plain":
+              "schema":
+                "type": "string"
+              "example": null
+  "/allChannels":
+    "get":
+      "tags":
+        - "POS API > Deliverect Endpoints"
+      "summary": "Integrated channels"
+      "description": "This will provide all currently channels that we are integrated with. For each, the `name` and `channelId` will be given."
+      "responses":
+        "200":
+          "description": "OK"
+          "headers":
+            "Access-Control-Allow-Credentials":
+              "schema":
+                "type": "boolean"
+                "example": "true"
+            "Access-Control-Allow-Headers":
+              "schema":
+                "type": "string"
+                "example": "Authorization,Cache-Control,Content-Type,If-Match,Keep-Alive,User-Agent"
+            "Access-Control-Allow-Methods":
+              "schema":
+                "type": "string"
+                "example": "DELETE,GET,HEAD,OPTIONS,PATCH,POST,PUT"
+            "Access-Control-Allow-Origin":
+              "schema":
+                "type": "string"
+                "example": "*"
+            "Content-Length":
+              "schema":
+                "type": "integer"
+                "example": "1840"
+            "Content-Type":
+              "schema":
+                "type": "string"
+                "example": "application/json"
+            "Date":
+              "schema":
+                "type": "string"
+                "example": "Mon, 23 Nov 2020 16:11:00 GMT"
+            "Server":
+              "schema":
+                "type": "string"
+                "example": "Eve/1.1.1 Werkzeug/1.0.1 Python/3.8.0"
+            "X-Protected-By":
+              "schema":
+                "type": "string"
+                "example": "Sqreen"
+          "content":
+            "application/json":
+              "schema":
+                "type": "object"
+              "example":
+                -
+                  "name": "DELIVERECT"
+                  "channelId": 1
+                -
+                  "name": "DELIVEROO"
+                  "channelId": 2
+                -
+                  "name": "FOODORA"
+                  "channelId": 3
+                -
+                  "name": "......"
+                  "channelId": 4
+  "/allAllergens":
+    "get":
+      "tags":
+        - "KDS API > Deliverect Endpoint"
+      "summary": "Allergens and tags Copy"
+      "description": "This allows a channel to get allergens and tags existing in Deliverect."
+      "responses":
+        "200":
+          "description": "200"
+          "content":
+            "application/json":
+              "schema":
+                "type": "object"
+              "example":
+                -
+                  "name": "Alcohol"
+                  "allergenId": 1
+                -
+                  "name": "Halal"
+                  "allergenId": 2
+                -
+                  "name": "Kosher"
+                  "allergenId": 3
+                -
+                  "name": "Vegan"
+                  "allergenId": 4
+                -
+                  "name": "Vegetarian"
+                  "allergenId": 5
+  "/accounts/{accountId}/brands":
+    "get":
+      "tags":
+        - "POS API > Deliverect Endpoints"
+      "summary": "Account Brands"
+      "description": "This endpoint provides the existing brands of an account. Brands represent the grouping of a particular offering from a customer, typically a menu concept or otherwise unique aspect. These brands are then individually present on ordering platforms. They could be a range of ghost kitchens, for example. A Deliverect account can have brands configured per <>. The brand is identifiable in orders as a unique ID. > 📘 Brand subscriptions"
+      "parameters":
+        -
+          "name": "accountId"
+          "in": "path"
+          "schema":
+            "type": "string"
+          "required": true
+      "responses":
+        "default":
+          "description": "default"
+          "content":
+            "text/plain":
+              "schema":
+                "type": "string"
+              "example":
+                "brands":
+                  -
+                    "name": "Brand 1"
+                    "brandId": "601bd819bfc52ecea142bf9f"
+                  -
+                    "name": "Brand 2"
+                    "brandId": "602131b4639578ac0da4588d"
+                  -
+                    "name": "Brand 3"
+                    "brandId": "602cecade10d4dc9fe0f7fdc"
+  "/updateBill/{locationId}":
+    "post":
+      "tags":
+        - "POS API > Deliverect Endpoints"
+      "summary": "Bill Update"
+      "description": "Deliver the details of a bill closed on the POS to Deliverect."
+      "requestBody":
+        "content":
+          "application/json":
+            "schema":
+              "type": "object"
+              "example":
+                "id": "R29532LF"
+                "status": 20
+                "tableId": "T1"
+                "createdAt": "2023-08-18T14:49:39.379000Z"
+                "lastUpdated": "2023-08-18T14:49:39.379000Z"
+                "closedAt": "2023-08-18T14:49:39.379000Z"
+                "decimalDigits": 2
+                "discountTotal": 100
+                "discounts":
+                  -
+                    "name": "Our company birthday discount"
+                    "total": 100
+                "surchargesTotal": 200
+                "surcharges":
+                  -
+                    "name": "Take-away"
+                    "total": 200
+                "taxTotal": 48
+                "taxes":
+                  -
+                    "name": "6% VAT"
+                    "total": 48
+                "total": 800
+                "totalDue": 400
+                "items":
+                  -
+                    "plu": "PLU-01"
+                    "name": "My first product"
+                    "quantity": 1
+                    "price": 300
+                  -
+                    "plu": "PLU-02"
+                    "name": "My second product"
+                    "quantity": 1
+                    "price": 400
+                    "subItems":
+                      -
+                        "plu": "PLU-03"
+                        "name": "My modifier"
+                        "quantity": 1
+                        "price": 0
+                "payments":
+                  -
+                    "name": "Cash"
+                    "total": 400
+      "parameters":
+        -
+          "name": "locationId"
+          "in": "path"
+          "schema":
+            "type": "string"
+          "required": true
+      "responses":
+        "200":
+          "description": "OK"
+          "headers":
+            "Content-Type":
+              "schema":
+                "type": "string"
+                "example": "application/json"
+          "content":
+            "application/json":
+              "schema":
+                "type": "object"
+              "example": "Bill queued for processing"
+        "400":
+          "description": "OK"
+          "headers":
+            "Content-Type":
+              "schema":
+                "type": "string"
+                "example": "application/json"
+          "content":
+            "application/json":
+              "schema":
+                "type": "object"
+              "example": "Please provide a JSON format as specified in the API docs"
+  "/orderStatus/{orderId}":
+    "post":
+      "tags":
+        - "POS API > Deliverect Endpoints"
+      "summary": "Update order status"
+      "description": "This endpoint allows a POS to update the status of an order at each stage in its preparation| It also allows for the modification of the pickupTime | Required Statuses| Although it is not expected that every status listed via the link below will be supported| it is essential that all POS set statuses as follows.Always acknowledge the initial order by responding 200 OK upon receipt of the Order Webhook URL before updating the order status accordingly.If the pickupTime is specified the pickupTime and deliveryTime are returned and will display the updated time on two conditions the updated pickupTime provided was valid example |provided time is in the future the channel being updated supports updating preparation time If no pickupTime is passed to the endpoint the original values for pickupTime and deliveryTime are returned in the response"
+      "content":
+        "*/*":
+          "schema":
+            "type": "string"
+            "example":
+              "orderId": "5d****e3448c290010****53"
+              "status": 10
+              "reason": "new order"
+              "timeStamp": "2019-09-05 07:44:15.000Z"
+              "receiptId": "1234"
+      "security":
+        -
+          "oauth2Auth": []
+      "parameters":
+        -
+          "name": "Content-Type"
+          "in": "header"
+          "schema":
+            "type": "string"
+          "example": "application/json"
+        -
+          "name": "orderId"
+          "in": "path"
+          "schema":
+            "type": "string"
+          "required": true
+      "responses":
+        "default":
+          "description": "default"
+          "content":
+            "text/plain":
+              "schema":
+                "type": "string"
+              "example": null
+        "200":
+          "description": "OK"
+          "content":
+            "application/json":
+              "schema":
+                "type": "object"
+              "examples":
+                "example-0":
+                  "summary": "NEW order"
+                  "value":
+                    "result": "OK"
+                "example-1":
+                  "summary": "Order CANCELED"
+                  "value":
+                    "result": "OK"
+  "/updatePreparationTime":
+    "post":
+      "tags":
+        - "KDS API > Deliverect Endpoint"
+      "summary": "Update Order Preparation Time"
+      "requestBody":
+        "content":
+          "application/json":
+            "schema":
+              "type": "object"
+              "example":
+                "order": "string"
+                "minutes": 0
+      "responses":
+        "200":
+          "description": "Successful response"
+          "content":
+            "application/json": {}
+  "/accounts":
+    "get":
+      "tags":
+        - "POS API > Deliverect Endpoints"
+      "summary": "Get linked accounts"
+      "description": "Every restaurant has an account. When such an account is linked to your integrator account, it will show up when doing this call. Please note, that here and later all dates and times, coming from/to Deliverect are UTC. #### Account types: | Account type | Integer representation | | - | - | | Partner | 1 | | Chain | 2 | | Customer | 3 | #### List of currencies: | Currency | Integer representation | | - | - | | Euro | 1 | | British Pound Sterling | 2 | | United States Dollar | 3 | | Canadian Dollar | 4 | | New Zealand Dollar | 5 | | Australian Dollar | 6 | | Bahraini Dinar | 7 | | United Arab Emirates Dirham | 8 | | Swedish Krona | 9 | | Swiss Franc | 10 | | Romanian Leu | 11 | | Moroccan Dirham | 12 | | Polish Zloty | 13 | | Norwegian Krone | 14 | | Mexican Peso | 15 | | Danish Krone | 16 | | Kuwaiti Dinar | 17 | | Saudi Riyal | 18 | | Afghan Afghani | 19 | | Albanian Lek | 20 | | Armenian Dram | 21 | | Netherlands Antillean Guilder | 22 | | Angolan Kwanza | 23 | | Argentine Peso | 24 | | Aruban Florin | 25 | | Azerbaijani Manat | 26 | | Bosnia-Herzegovina Convertible Mark | 27 | | Barbadian Dollar | 28 | | Bangladeshi Taka | 29 | | Bulgarian Lev | 30 | | Burundian Franc | 31 | | Bermudan Dollar | 32 | | Brunei Dollar | 33 | | Bolivian Boliviano | 34 | | Brazilian Real | 35 | | Bahamian Dollar | 36 | | Bitcoin | 37 | | Bhutanese Ngultrum | 38 | | Botswanan Pula | 39 | | Belarusian Ruble | 40 | | Belize Dollar | 41 | | Congolese Franc | 42 | | Chilean Unit of Account (UF) | 43 | | Chilean Peso | 44 | | Chinese Yuan (Offshore) | 45 | | Chinese Yuan | 46 | | Colombian Peso | 47 | | Costa Rican Colón | 48 | | Cuban Convertible Peso | 49 | | Cuban Peso | 50 | | Cape Verdean Escudo | 51 | | Czech Republic Koruna | 52 | | Djiboutian Franc | 53 | | Dominican Peso | 54 | | Algerian Dinar | 55 | | Egyptian Pound | 56 | | Eritrean Nakfa | 57 | | Ethiopian Birr | 58 | | Fijian Dollar | 59 | | Falkland Islands Pound | 60 | | Georgian Lari | 61 | | Guernsey Pound | 62 | | Ghanaian Cedi | 63 | | Gibraltar Pound | 64 | | Gambian Dalasi | 65 | | Guinean Franc | 66 | | Guatemalan Quetzal | 67 | | Guyanaese Dollar | 68 | | Hong Kong Dollar | 69 | | Honduran Lempira | 70 | | Croatian Kuna | 71 | | Haitian Gourde | 72 | | Hungarian Forint | 73 | | Indonesian Rupiah | 74 | | Israeli New Sheqel | 75 | | Manx pound | 76 | | Indian Rupee | 77 | | Iraqi Dinar | 78 | | Iranian Rial | 79 | | Icelandic Króna | 80 | | Jersey Pound | 81 | | Jamaican Dollar | 82 | | Jordanian Dinar | 83 | | Japanese Yen | 84 | | Kenyan Shilling | 85 | | Kyrgystani Som | 86 | | Cambodian Riel | 87 | | Comorian Franc | 88 | | North Korean Won | 89 | | South Korean Won | 90 | | Cayman Islands Dollar | 91 | | Kazakhstani Tenge | 92 | | Laotian Kip | 93 | | Lebanese Pound | 94 | | Sri Lankan Rupee | 95 | | Liberian Dollar | 96 | | Lesotho Loti | 97 | | Libyan Dinar | 98 | | Moldovan Leu | 99 | | Malagasy Ariary | 100 | | Macedonian Denar | 101 | | Myanma Kyat | 102 | | Mongolian Tugrik | 103 | | Macanese Pataca | 104 | | Mauritanian Ouguiya (pre-2018) | 105 | | Mauritanian Ouguiya | 106 | | Mauritian Rupee | 107 | | Maldivian Rufiyaa | 108 | | Malawian Kwacha | 109 | | Malaysian Ringgit | 110 | | Mozambican Metical | 111 | | Namibian Dollar | 112 | | Nigerian Naira | 113 | | Nicaraguan Córdoba | 114 | | Nepalese Rupee | 115 | | Omani Rial | 116 | | Panamanian Balboa | 117 | | Peruvian Nuevo Sol | 118 | | Papua New Guinean Kina | 119 | | Philippine Peso | 120 | | Pakistani Rupee | 121 | | Paraguayan Guarani | 122 | | Qatari Rial | 123 | | Serbian Dinar | 124 | | Russian Ruble | 125 | | Rwandan Franc | 126 | | Solomon Islands Dollar | 127 | | Seychellois Rupee | 128 | | Sudanese Pound | 129 | | Singapore Dollar | 130 | | Saint Helena Pound | 131 | | Sierra Leonean Leone | 132 | | Somali Shilling | 133 | | Surinamese Dollar | 134 | | South Sudanese Pound | 135 | | São Tomé and Príncipe Dobra (pre-2018) | 136 | | São Tomé and Príncipe Dobra | 137 | | Salvadoran Colón | 138 | | Syrian Pound | 139 | | Swazi Lilangeni | 140 | | Thai Baht | 141 | | Tajikistani Somoni | 142 | | Turkmenistani Manat | 143 | | Tunisian Dinar | 144 | | Tongan Pa'anga | 145 | | Turkish Lira | 146 | | Trinidad and Tobago Dollar | 147 | | New Taiwan Dollar | 148 | | Tanzanian Shilling | 149 | | Ukrainian Hryvnia | 150 | | Ugandan Shilling | 151 | | Uruguayan Peso | 152 | | Uzbekistan Som | 153 | | Venezuelan Bolívar Fuerte | 154 | | Vietnamese Dong | 155 | | Vanuatu Vatu | 156 | | Samoan Tala | 157 | | CFA Franc BEAC | 158 | | East Caribbean Dollar | 159 | | CFA Franc BCEAO | 160 | | CFP Franc | 161 | | Yemeni Rial | 162 | | South African Rand | 163 | | Zambian Kwacha | 164 | | Zimbabwean Dollar | 165 |"
+      "responses":
+        "200":
+          "description": "OK"
+          "headers":
+            "Server":
+              "schema":
+                "type": "string"
+                "example": "nginx/1.13.9"
+            "Date":
+              "schema":
+                "type": "string"
+                "example": "Wed, 20 Feb 2019 13:44:37 GMT"
+            "Content-Type":
+              "schema":
+                "type": "string"
+                "example": "application/json"
+            "Content-Length":
+              "schema":
+                "type": "integer"
+                "example": "6016"
+            "Connection":
+              "schema":
+                "type": "string"
+                "example": "keep-alive"
+            "X-Total-Count":
+              "schema":
+                "type": "integer"
+                "example": "13"
+            "Cache-Control":
+              "schema":
+                "type": "string"
+                "example": "max-age=20"
+            "Expires":
+              "schema":
+                "type": "string"
+                "example": "Wed, 20 Feb 2019 13:44:57 GMT"
+            "Last-Modified":
+              "schema":
+                "type": "string"
+                "example": "Sun, 17 Feb 2019 18:31:08 GMT"
+            "Access-Control-Allow-Origin":
+              "schema":
+                "type": "string"
+                "example": "*"
+            "Access-Control-Allow-Headers":
+              "schema":
+                "type": "string"
+                "example": "User-Agent,Keep-Alive,Content-Type,Authorization"
+            "Access-Control-Allow-Methods":
+              "schema":
+                "type": "string"
+                "example": "GET, POST, OPTIONS, DELETE, PUT, PATCH"
+            "Access-Control-Allow-Credentials":
+              "schema":
+                "type": "boolean"
+                "example": "true"
+          "content":
+            "application/json":
+              "schema":
+                "type": "object"
+              "examples":
+                "example-0":
+                  "summary": "200"
+                  "value":
+                    "_items":
+                      -
+                        "_id": "5f1***131"
+                        "name": "Generic account"
+                        "accountType": 1
+                        "currency": 1
+                        "posSystem": 10000
+                        "_updated": "2021-05-18T08:02:16.000000Z"
+                        "_created": "2020-07-24T07:36:49.000000Z"
+                        "_deleted": false
+                        "_etag": "004a4df4bcce3cae83fd530c4a502278633ffd42"
+                        "locations":
+                          - "5f1***133"
+                          - "606***b86"
+                          - "606***555"
+                        "accounts": []
+                        "brands":
+                          -
+                            "name": "Generic account"
+                            "brandId": "606***6c5"
+                        "deliverectVersion": "2.0"
+                        "featureFlags":
+                          "menuLocationOverrides": false
+                          "autoApply": false
+                          "pullAvailabilities": false
+                          "combinedProductsPage": false
+                          "enableSelfOnboarding": false
+                          "reportsV2": false
+                          "enableDiscounts": false
+                          "enableDelivery": false
+                        "region": "EU"
+                        "settings":
+                          "taxExcl": false
+                        "whitelabel": "deliverect"
+                        "users":
+                          - "607***ca68"
+                        "reportingEndpoints":
+                          -
+                            "endpoint": "https://reporting-endpoint.com/reporting/newOrder"
+                            "statusTrigger":
+                              - 20
+                            "endpointType": 10
+                        "_links":
+                          "self":
+                            "title": "accounts"
+                            "href": "accounts/5f1***131"
+                          "related":
+                            "users":
+                              -
+                                "title": "users"
+                                "href": "users/607***a68"
+                            "locations":
+                              -
+                                "title": "Locations"
+                                "href": "locations/5f1***133"
+                              -
+                                "title": "Locations"
+                                "href": "locations/606***b86"
+                              -
+                                "title": "Locations"
+                                "href": "locations/606***555"
+                            "accounts": []
+                    "_links":
+                      "parent":
+                        "title": "home"
+                        "href": "/"
+                      "self":
+                        "title": "accounts"
+                        "href": "accounts"
+                    "_meta":
+                      "page": 1
+                      "max_results": 25
+                      "total": 1
+                "example-1":
+                  "summary": "200 - Get linked accounts"
+                  "value":
+                    "_items":
+                      -
+                        "_id": "5f1***131"
+                        "name": "Generic account"
+                        "accountType": 1
+                        "currency": 1
+                        "posSystem": 10000
+                        "_updated": "2021-05-18T08:02:16.000000Z"
+                        "_created": "2020-07-24T07:36:49.000000Z"
+                        "_deleted": false
+                        "_etag": "004a4df4bcce3cae83fd530c4a502278633ffd42"
+                        "locations":
+                          - "5f1***133"
+                          - "606***b86"
+                          - "606***555"
+                        "accounts":
+                          - "5c7***fef"
+                        "brands":
+                          -
+                            "name": "Generic account"
+                            "brandId": "606***6c5"
+                        "deliverectVersion": "2.0"
+                        "featureFlags":
+                          "menuLocationOverrides": false
+                          "autoApply": false
+                          "pullAvailabilities": false
+                          "combinedProductsPage": false
+                          "enableSelfOnboarding": false
+                          "reportsV2": false
+                          "enableDiscounts": false
+                          "enableDelivery": false
+                        "region": "EU"
+                        "settings":
+                          "taxExcl": false
+                        "whitelabel": "deliverect"
+                        "users":
+                          - "607***ca68"
+                        "reportingEndpoints":
+                          -
+                            "endpoint": "https://reporting-endpoint.com/reporting/newOrder"
+                            "statusTrigger":
+                              - 20
+                            "endpointType": 10
+                        "_links":
+                          "self":
+                            "title": "accounts"
+                            "href": "accounts/5f1***131"
+                          "related":
+                            "users":
+                              -
+                                "title": "users"
+                                "href": "users/607***a68"
+                            "locations":
+                              -
+                                "title": "Locations"
+                                "href": "locations/5f1***133"
+                              -
+                                "title": "Locations"
+                                "href": "locations/606***b86"
+                              -
+                                "title": "Locations"
+                                "href": "locations/606***555"
+                            "accounts": []
+                      -
+                        "_id": "5c7***fef"
+                        "name": "Deliverect Test POS Resto"
+                        "accountType": 2
+                        "currency": 1
+                        "posSystem": 10000
+                        "region": "EU"
+                        "_updated": "2021-02-26T10:27:21.000000Z"
+                        "_created": "2021-02-26T10:27:10.000000Z"
+                        "_deleted": false
+                        "_etag": "0b64e08badb2dbb6497899b3a506d3931cc2477e"
+                        "locations":
+                          - "5c7***ff0"
+                        "users":
+                          - "5c7***ff3"
+                        "_links":
+                          "self":
+                            "title": "accounts"
+                            "href": "accounts/5c7***fef"
+                    "_links":
+                      "parent":
+                        "title": "home"
+                        "href": "/"
+                      "self":
+                        "title": "accounts"
+                        "href": "accounts"
+                    "_meta":
+                      "page": 1
+                      "max_results": 25
+                      "total": 2
+        "401":
+          "description": "UNAUTHORIZED"
+          "headers":
+            "Server":
+              "schema":
+                "type": "string"
+                "example": "nginx/1.13.9"
+            "Date":
+              "schema":
+                "type": "string"
+                "example": "Wed, 27 Feb 2019 12:14:10 GMT"
+            "Content-Type":
+              "schema":
+                "type": "string"
+                "example": "application/json"
+            "Content-Length":
+              "schema":
+                "type": "integer"
+                "example": "91"
+            "Connection":
+              "schema":
+                "type": "string"
+                "example": "keep-alive"
+            "WWW-Authenticate":
+              "schema":
+                "type": "string"
+                "example": "Basic realm={{eve}"
+            "Cache-Control":
+              "schema":
+                "type": "string"
+                "example": "max-age=20"
+            "Expires":
+              "schema":
+                "type": "string"
+                "example": "Wed, 27 Feb 2019 12:14:30 GMT"
+            "Access-Control-Allow-Origin":
+              "schema":
+                "type": "string"
+                "example": "*"
+            "Access-Control-Allow-Headers":
+              "schema":
+                "type": "string"
+                "example": "Content-Type,Authorization"
+            "Access-Control-Allow-Methods":
+              "schema":
+                "type": "string"
+                "example": "GET,PUT,POST,DELETE,OPTIONS"
+          "content":
+            "application/json":
+              "schema":
+                "type": "object"
+              "example":
+                "_status": "ERR"
+                "_error":
+                  "code": 401
+                  "message": "Please provide proper credentials"
+  "/locations":
+    "get":
+      "tags":
+        - "Store API > Deliverect Endpoints"
+      "summary": "Get locations"
+      "description": "Per physical restaurant location, there will be a *Location*. This endpoint can be used to query them. You can have to specify an account, otherwise the locations of your own account will be returned"
+      "parameters":
+        -
+          "name": "where"
+          "in": "query"
+          "schema":
+            "type": "string"
+          "example":
+            "account": "{{accountId}}"
+      "responses":
+        "200":
+          "description": "OK"
+          "headers":
+            "Server":
+              "schema":
+                "type": "string"
+                "example": "nginx/1.14.1"
+            "Date":
+              "schema":
+                "type": "string"
+                "example": "Thu, 14 Feb 2019 16:24:59 GMT"
+            "Content-Type":
+              "schema":
+                "type": "string"
+                "example": "application/json"
+            "Content-Length":
+              "schema":
+                "type": "integer"
+                "example": "1270"
+            "Connection":
+              "schema":
+                "type": "string"
+                "example": "keep-alive"
+            "X-Total-Count":
+              "schema":
+                "type": "integer"
+                "example": "1"
+            "Cache-Control":
+              "schema":
+                "type": "string"
+                "example": "max-age=20"
+            "Expires":
+              "schema":
+                "type": "string"
+                "example": "Thu, 14 Feb 2019 16:25:19 GMT"
+            "Last-Modified":
+              "schema":
+                "type": "string"
+                "example": "Thu, 14 Feb 2019 13:57:59 GMT"
+            "Access-Control-Allow-Origin":
+              "schema":
+                "type": "string"
+                "example": "*"
+            "Access-Control-Allow-Headers":
+              "schema":
+                "type": "string"
+                "example": "User-Agent,Keep-Alive,Content-Type,Authorization"
+            "Access-Control-Allow-Methods":
+              "schema":
+                "type": "string"
+                "example": "GET, POST, OPTIONS, DELETE, PUT, PATCH"
+            "Access-Control-Allow-Credentials":
+              "schema":
+                "type": "boolean"
+                "example": "true"
+          "content":
+            "application/json":
+              "schema":
+                "type": "object"
+              "examples":
+                "example-0":
+                  "summary": "Account and location result"
+                  "value":
+                    "_items":
+                      -
+                        "_id": "5c1a40f6c6489f00bac4c252"
+                        "name": "Partner Jelte"
+                        "accountType": 1
+                        "_updated": "2019-02-14T13:57:59.000000Z"
+                        "_created": "2018-12-19T13:00:38.000000Z"
+                        "_etag": "ad515c7db898b7004253d8ea46d07a3b7e0cbd99"
+                        "locations":
+                          - "5c1a4117c6489f00bac4c253"
+                          - "5c20ea48c6489f0016a132f7"
+                          - "5c20f1cec6489f0035972273"
+                          - "5c6573e7c6489f00014c507c"
+                        "accounts":
+                          -
+                            "_id": "5c3f8a90c6489f002c85dd3d"
+                            "name": "Gastrofixies"
+                            "accountType": 2
+                            "_updated": "2019-01-16T19:49:37.000000Z"
+                            "_created": "2019-01-16T19:48:32.000000Z"
+                            "_deleted": false
+                            "_etag": "56f924441a4de194e96f3d9f6ebc962b7a8d524c"
+                            "locations":
+                              -
+                                "_id": "5c3f8ad1c6489f002c85dd3e"
+                                "name": "Gastro gefixed (10905)"
+                                "account": "5c3f8a90c6489f002c85dd3d"
+                                "_updated": "2019-01-28T12:19:19.000000Z"
+                                "_created": "2019-01-16T19:49:37.000000Z"
+                                "_deleted": false
+                                "_etag": "11b454d7423e292c4455c5c142ebc12d2563f8ea"
+                                "channelLinks":
+                                  - "5c3f8aeac6489f002c85dd41"
+                                  - "5c4ef347c6489f0001594856"
+                        "users":
+                          - "5c2496cbc6489f00169462a3"
+                        "_deleted": false
+                        "_links":
+                          "self":
+                            "title": "accounts"
+                            "href": "accounts/5c1a40f6c6489f00bac4c252"
+                    "_links":
+                      "parent":
+                        "title": "home"
+                        "href": "/"
+                      "self":
+                        "title": "accounts"
+                        "href": "accounts"
+                    "_meta":
+                      "page": 1
+                      "max_results": 25
+                      "total": 1
+                "example-1":
+                  "summary": "locations by account"
+                  "value":
+                    "_items":
+                      -
+                        "_id": "5bf02f38c6489f002c******"
+                        "_created": "2018-11-17T15:09:44.000000Z"
+                        "_updated": "2019-02-14T11:16:20.000000Z"
+                        "_etag": "ef043a0519e16ba48d7b4b2f5af928c9324760e0"
+                        "name": "Test location 1"
+                        "status": "INTEGRATOR"
+                        "channelLinks":
+                          - "5bf02f38c6489f002******1"
+                          - "5bf02f38c6489f002******2"
+                        "account": "5be9c971c6489f0029******"
+                        "_deleted": false
+                        "_links":
+                          "self":
+                            "title": "Locations"
+                            "href": "locations/5bf02f38c6489f002c******"
+                      -
+                        "_id": "5bf02f38c6489f002c******"
+                        "_created": "2018-11-17T15:09:44.000000Z"
+                        "_updated": "2019-01-16T17:30:40.000000Z"
+                        "_etag": "c9a39040acd03086bcd9abfd00af7acb5c5e748f"
+                        "name": "Test Location 2"
+                        "status": "INTEGRATOR"
+                        "channelLinks":
+                          - "5bf02f38c6489f002******1"
+                        "account": "5be9c971c6489f0029******"
+                        "_deleted": false
+                        "_links":
+                          "self":
+                            "title": "Locations"
+                            "href": "locations/5bf02f38c6489f002c******"
+                    "_links":
+                      "parent":
+                        "title": "home"
+                        "href": "/"
+                      "self":
+                        "title": "locations"
+                        "href": "locations?where={account: {{accountId}}}"
+                    "_meta":
+                      "page": 1
+                      "max_results": 25
+                      "total": 4
+  "/channelLinks":
+    "get":
+      "tags":
+        - "POS API > Deliverect Endpoints"
+      "summary": "Channel Links"
+      "parameters":
+        -
+          "name": "where"
+          "in": "query"
+          "schema":
+            "type": "string"
+          "example": "{account: {{accountId}}}"
+      "responses":
+        "default":
+          "description": "default"
+          "content":
+            "text/plain":
+              "schema":
+                "type": "string"
+              "example": null
+  "/register":
+    "post":
+      "tags":
+        - "POS API > Partner Webhooks"
+      "summary": "Register POS"
+      "description": "Gets called when POS is being registered in Deliverect. For instance when a new customer adds a location you will receive the register event. After this event it should be possible to sync products and insert orders into the POS. Webhook payload contains information such as: * Deliverect account id (`accountId`) * Deliverect location id (`locationId`) * External location id provided by the POS (`externalLocationId`) We always expect a JSON result which contains the endpoints to: * Sync products from the POS to Deliverect (`syncProductsURL`) * Insert order from Deliverect to the POS (`ordersWebhookURL`) * Sync tables from the POS to Deliverect (`syncTablesURL`) * Sync floors from the POS to Deliverect (`syncFloorsURL`) If an endpoint is empty or not included in this response we will not use it."
+      "requestBody":
+        "content": {}
+      "responses":
+        "default":
+          "description": "default"
+          "headers":
+            "Content-Type":
+              "schema":
+                "type": "string"
+                "example": "application/json"
+          "content":
+            "application/json":
+              "schema":
+                "type": "object"
+              "example":
+                "ordersWebhookURL": "https://integrator.com/ordersWebhookURL"
+                "syncProductsURL": "https://integrator.com/syncProductsURL"
+                "syncTablesURL": "https://integrator.com/syncTablesURL"
+                "syncFloorsURL": "https://integrator.com/syncFloorsURL"
+  "/":
+    "post":
+      "tags":
+        - "KDS API > Partner Webhooks"
+      "summary": "Register KDS"
+      "requestBody":
+        "content":
+          "application/json":
+            "schema":
+              "type": "object"
+              "example":
+                "accountId": "606****475a3"
+                "locationId": "606****500a6"
+                "externalReference": "externalCustomerIdentifier"
+      "responses":
+        "200":
+          "description": "Successful response"
+          "content":
+            "application/json": {}
+    "get":
+      "tags":
+        - "POS API > Partner Webhooks"
+      "summary": "Get products"
+      "description": "Gets called when the user initiates a product sync from Deliverect. Depending on your setup there are two options. If you choose for an a-sync product sync this endpoint should return an empty HTTP 200 response. You can then a-sync send us the products to the given endpoint. If you choose for a sync way of working. You can directly choose to send us the products in exact the same format as you would in an a-sync way. For the format of sending us products please have a look here [product sync](https://developers.deliverect.com/#c102c78d-46bb-42e7-8c53-166978f71aa4)"
+      "parameters":
+        -
+          "name": "Accept"
+          "in": "header"
+          "schema":
+            "type": "string"
+          "example": "application/json"
+        -
+          "name": "X-Server-Authorization-HMAC-SHA256"
+          "in": "header"
+          "schema":
+            "type": "string"
+          "example": "HMAC-Signature"
+      "responses":
+        "200":
+          "description": "200"
+          "content":
+            "application/json":
+              "schema":
+                "type": "object"
+              "example": {}
+    "/getTables/":
+      "get":
+        "tags":
+          - "POS API > Partner Webhooks"
+        "summary": "Sync Tables"
+        "description": "Endpoint to get tables from the POS."
+        "responses":
+          "200":
+            "description": "200"
+            "content":
+              "application/json":
+                "schema":
+                  "type": "object"
+                "example":
+                  "tables":
+                    -
+                      "id": "barSeat#1"
+                      "name": "Bar seat #1"
+                      "floorId": "bar"
+                      "seats": 1
+                    -
+                      "id": "barSeat#2"
+                      "name": "Bar seat #2"
+                      "floorId": "bar"
+                      "seats": 1
+                    -
+                      "id": "barSeat#3"
+                      "name": "Bar seat #3"
+                      "floorId": "bar"
+                      "seats": 1
+                    -
+                      "id": "table#1"
+                      "name": "Table #1"
+                      "floorId": "restaurant"
+                      "seats": 6
+                    -
+                      "id": "table#2"
+                      "name": "Table #2"
+                      "floorId": "restaurant"
+                      "seats": 8
+                    -
+                      "id": "Delivery"
+                      "name": "delivery"
+    "/getFloors/":
+      "get":
+        "tags":
+          - "POS API > Partner Webhooks"
+        "summary": "Sync Floors"
+        "description": "Endpoint to get floors from the POS."
+        "responses":
+          "200":
+            "description": "200"
+            "content":
+              "application/json":
+                "schema":
+                  "type": "object"
+                "example":
+                  "floors":
+                    -
+                      "id": "bar"
+                      "name": "Bar"
+                      "description": "Bar floor"
+                      "capacity": 60
+                    -
+                      "id": "restaurant"
+                      "name": "Restaurant"
+                      "description": "Restaurant floor"
+                      "capacity": 75
+    "/{channelName}/order/{channelLinkId}":
+      "post":
+        "tags":
+          - "Channel API > Deliverect Endpoints"
+        "summary": "Cancel Order"
+        "description": "Your generic channel integration can use this endpoint to place a new order for a linked location. Note that, when sending a new order, Deliverect will check whether the party sending the order has the correct **scope** to do so. If not, they are considered unauthorized. The scope for generic channels is communicated to integrating parties together with the API Keys, and is checked in the request target URL only. Therefore, make sure to replace the ChannelName with the scope. For `orderType`, send one of these values (as an integer): | Type | Integer value | |-|-| | pickup | 1 | | delivery | 2 | | eat in | 3 | | curbside | 4 | For payment type, send one of these values: | Payment type | Integer value | |-|-| | credit card online | 0 | | cash | 1 | --- #### Tax exclusive orders If a store on your channel works tax exclusively, your channel API should send orders from that store in a slightly different way. First of all, always make sure that the channel link for this store has the Is Tax Exclusive? setting (under Advanced Settings) enabled in Deliverect. This setting determines whether Deliverect will parse orders as tax exclusive or not. As for the order itself, this is what must be taken into account: - Prices of products that are sent must **exclude** taxes - `deliveryCost` and `serviceCharge` must also **exclude** taxes, total taxes for those should be sent with keys `deliveryCostTax` and `serviceChargeTax`, respectively - The total payment amount must **include** taxes - An extra array `taxes` must be sent, which details all tax amounts (excluding `deliveryCostTax` and `serviceChargeTax`) per tax class The table below outlines the structure for the dicts in `taxes`, which each describe a tax class. | Key | Value | |-|-| | `taxClassId` | the ID corresponding to this tax class as used by Deliverect | | `name` | the display name for this category of taxes, which is how it should be printed on a receipt | | `total` | the sum of all tax amounts for this category | --- #### A note on `taxClassId`s We have yet to formalize tax class IDs. In the future, expect menu push requests to include which tax classes (by ID) should be applied to which product(s). For now, we will not use the provided value sent by your channel API. --- Make sure to send all tax amounts as integers, bearing in mind the number of `decimalDigits`. In the end, the equation below must always hold true: ```text <payment total> = <sum of prices of all products in the order> + deliveryCost + serviceCharge + deliveryCostTax + serviceChargeTax + <sum of all tax amounts in the taxes array> ``` Make sure to check out the example request for a tax exclusive order on the right. --- #### About estimated pickup time If you look at the example requests on the right, you'll notice the `estimatedPickupTime` field. Make sure to fill this in with a valid timestamp in the format used in the example request. If your channel doesn't use an estimate for the pickup time, the easiest thing to do is to reuse `pickupTime`, and just send the same value for `estimatedPickupTime`. --- #### Canceling an order **Note:** Your channel is not yet required to support order cancellation in order to become or remain certified. If your channel supports canceling an order, you can send a request to Deliverect that will have the order canceled. Note that your channel API, if it supports canceling an order, should only attempt to do so for orders that have not yet been accepted. Once an order has been accepted by the POS, it can no longer be canceled. To cancel an order, send it to the order endpoint again (like you would for a new order), and make sure to add a top-level entry with key `cancellationReason`, which has a string value to indicate the reason your channel is sending a cancellation request for this order. Note that you do not have to include all data that was in the original order, but only the information needed to identify the order. This will give the order the `CANCEL` status. Once the order is sent to the POS with that status, the POS can confirm the cancellation, after which the order will have the `CANCELED` status, and can effectively be considered canceled. To see what a `CANCEL` order looks like, select the corresponding example from the drop-down box on the right. ##### NOTE Please note, that here and later all dates and times, coming from/to Deliverect are UTC."
+        "requestBody":
+          "content":
+            "*/*":
+              "schema":
+                "type": "string"
+                "example":
+                  "channelOrderId": "{{channelOrderId-001}}"
+                  "channelOrderDisplayId": "{{channelOrderDisplayId-001}}"
+                  "channelLinkId": "{{channelLinkId-001}}"
+                  "by": ""
+                  "orderType": 2
+                  "table": "Table 23"
+                  "channel": 10000
+                  "pickupTime": "2020-03-09T17:17:38Z"
+                  "estimatedPickupTime": "2020-03-09T17:17:38Z"
+                  "deliveryTime": "2020-03-09T17:17:38Z"
+                  "deliveryIsAsap": true
+                  "courier": "restaurant"
+                  "customer":
+                    "name": "Customer name"
+                    "companyName": "Deliverect"
+                    "phoneNumber": "0123456789"
+                    "email": "customer@deliverect.com"
+                    "tin": "taxIdentificationNumber"
+                  "deliveryAddress":
+                    "street": "The Krook"
+                    "streetNumber": "4"
+                    "postalCode": "9000"
+                    "city": "Gent"
+                    "extraAddressInfo": ""
+                  "orderIsAlreadyPaid": true
+                  "payment":
+                    "amount": 975
+                    "type": 3
+                  "note": "This is a test note"
+                  "items":
+                    -
+                      "plu": "T5"
+                      "name": "Bier (Hertog Jan)"
+                      "price": 325
+                      "quantity": 1
+                      "remark": ""
+                      "subItems":
+                        -
+                          "plu": "SI2"
+                          "name": "Fluitje"
+                          "price": 0
+                          "quantity": 1
+                          "remark": ""
+                          "subItems": []
+                    -
+                      "plu": "SO1"
+                      "name": "Cali SALMON"
+                      "price": 550
+                      "quantity": 1
+                      "remark": "Don't add peper"
+                      "subItems": []
+                  "decimalDigits": 2
+                  "numberOfCustomers": 1
+                  "deliveryCost": 0
+                  "serviceCharge": 0
+                  "discountTotal": 0
+                  "tip": 100
+        "security":
+          -
+            "bearerAuth": []
+        "parameters":
+          -
+            "name": "Content-Type"
+            "in": "header"
+            "schema":
+              "type": "string"
+            "example": "application/json"
+          -
+            "name": "channelName"
+            "in": "path"
+            "schema":
+              "type": "string"
+            "required": true
+          -
+            "name": "channelLinkId"
+            "in": "path"
+            "schema":
+              "type": "string"
+            "required": true
+        "responses":
+          "default":
+            "description": "default"
+            "content":
+              "text/plain":
+                "schema":
+                  "type": "string"
+                "example": null
+    "/{channelName}/menuStatus/{_id}":
+      "post":
+        "tags":
+          - "Channel API > Partner Webhooks"
+        "summary": "Menu Update (Async)"
+        "requestBody":
+          "content": {}
+        "parameters":
+          -
+            "name": "channelName"
+            "in": "path"
+            "schema":
+              "type": "string"
+            "required": true
+          -
+            "name": "_id"
+            "in": "path"
+            "schema":
+              "type": "string"
+            "required": true
+        "responses":
+          "200":
+            "description": "OK"
+            "content":
+              "text/plain":
+                "schema":
+                  "type": "string"
+                "example": "{}"
+    "/{channelName}/updateStoreStatus/{channelLinkId}":
+      "post":
+        "tags":
+          - "Channel API > Deliverect Endpoints"
+        "summary": "Update Store Status (open/closed)"
+        "requestBody":
+          "content":
+            "application/json":
+              "schema":
+                "type": "object"
+                "example":
+                  "status": "closed"
+                  "reason": "Too many failed orders"
+        "parameters":
+          -
+            "name": "channelName"
+            "in": "path"
+            "schema":
+              "type": "string"
+            "required": true
+          -
+            "name": "channelLinkId"
+            "in": "path"
+            "schema":
+              "type": "string"
+            "required": true
+        "responses":
+          "200":
+            "description": "Successful response"
+            "content":
+              "application/json": {}
+    "/{channelName}/courierUpdate/{channelLinkId}":
+      "post":
+        "tags":
+          - "Channel API > Deliverect Endpoints"
+        "summary": "Update Courier Status"
+        "requestBody":
+          "content":
+            "application/json":
+              "schema":
+                "type": "object"
+                "example":
+                  "channelOrderId": "63171d******d34b5efe"
+                  "courierUpdate":
+                    "status": 85
+                    "arrivalTime": "2022-10-25T16:24:40.482000Z"
+                    "deliveryTime": "2022-10-25T16:24:40.482000Z"
+                    "courier":
+                      "firstName": "Joe"
+                      "lastName": "Driver"
+                      "phoneNumber": "+44 20 3936 1162"
+                      "coordinates":
+                        "coordinates":
+                          - -0.0785
+                          - 51.52081
+        "parameters":
+          -
+            "name": "channelName"
+            "in": "path"
+            "schema":
+              "type": "string"
+            "required": true
+          -
+            "name": "channelLinkId"
+            "in": "path"
+            "schema":
+              "type": "string"
+            "required": true
+        "responses":
+          "200":
+            "description": "Successful response"
+            "content":
+              "application/json": {}
+    "/tables/{locationId}":
+      "get":
+        "tags":
+          - "Channel API > Deliverect Endpoints"
+        "summary": "GET POS tables"
+        "description": "Retrieves all tables and floors registered in a POS at a specific location."
+        "parameters":
+          -
+            "name": "locationId"
+            "in": "path"
+            "schema":
+              "type": "string"
+            "required": true
+        "responses":
+          "200":
+            "description": "OK"
+            "headers":
+              "Access-Control-Allow-Credentials":
+                "schema":
+                  "type": "boolean"
+                  "example": "true"
+              "Access-Control-Allow-Headers":
+                "schema":
+                  "type": "string"
+                  "example": "Authorization,Cache-Control,Content-Type,If-Match,Keep-Alive,User-Agent"
+              "Access-Control-Allow-Methods":
+                "schema":
+                  "type": "string"
+                  "example": "DELETE,GET,HEAD,OPTIONS,PATCH,POST,PUT"
+              "Access-Control-Allow-Origin":
+                "schema":
+                  "type": "string"
+                  "example": "*"
+              "Content-Length":
+                "schema":
+                  "type": "integer"
+                  "example": "458"
+              "Content-Type":
+                "schema":
+                  "type": "string"
+                  "example": "application/json"
+              "Date":
+                "schema":
+                  "type": "string"
+                  "example": "Tue, 24 Nov 2020 20:47:46 GMT"
+              "Server":
+                "schema":
+                  "type": "string"
+                  "example": "Eve/1.1.1 Werkzeug/1.0.1 Python/3.8.0"
+              "X-Protected-By":
+                "schema":
+                  "type": "string"
+                  "example": "Sqreen"
+            "content":
+              "application/json":
+                "schema":
+                  "type": "object"
+                "example":
+                  "tables":
+                    -
+                      "id": "barSeat#1"
+                      "name": "Bar seat #1"
+                      "floorId": "bar"
+                      "seats": 1
+                    -
+                      "id": "barSeat#2"
+                      "name": "Bar seat #2"
+                      "floorId": "bar"
+                      "seats": 1
+                    -
+                      "id": "barSeat#3"
+                      "name": "Bar seat #3"
+                      "floorId": "bar"
+                      "seats": 1
+                    -
+                      "id": "table#1"
+                      "name": "Table #1"
+                      "floorId": "restaurant"
+                      "seats": 6
+                    -
+                      "id": "table#2"
+                      "name": "Table #2"
+                      "floorId": "restaurant"
+                      "seats": 8
+                    -
+                      "id": "Delivery"
+                      "name": "delivery"
+                  "floors":
+                    -
+                      "id": "bar"
+                      "name": "Bar"
+                    -
+                      "id": "restaurant"
+                      "name": "Restaurant"
+          "422":
+            "description": "422"
+            "content":
+              "text/plain":
+                "schema":
+                  "type": "string"
+                "example":
+                  "error": "Get tables action is not supported for this location."
+          "default":
+            "description": "default"
+            "content":
+              "text/plain":
+                "schema":
+                  "type": "string"
+                "example":
+                  "error": "failed to get tables: Error message"
+    "/fulfillment/validate":
+      "post":
+        "tags":
+          - "Channel API > Deliverect Endpoints"
+        "summary": "Dispatch Availability"
+        "requestBody":
+          "content":
+            "application/json":
+              "schema":
+                "type": "object"
+                "example":
+                  "channelLinkId": "6220a195af10fe8e6121257f"
+                  "deliveryLocations":
+                    "deliveryTime": "2022-08-08T11:00:00Z"
+                    "packageSize": "unknown"
+                    "name": "customer name"
+                    "source": "customer address"
+                    "phone": "+111111111"
+                    "coordinates":
+                      "coordinates":
+                        - -113
+                        - 53
+        "responses":
+          "200":
+            "description": "Successful response"
+            "content":
+              "application/json": {}
+    "/{channelName}/updateRating":
+      "post":
+        "tags":
+          - "Channel API > Deliverect Endpoints"
+        "summary": "Order Rating Update"
+        "description": "Your generic channel integration can use this endpoint to update rating for previously placed order. Note that, when sending rating update, Deliverect will check whether the party sending the order has the correct scope to do so. If not, they are considered unauthorized. The scope for generic channels is communicated to integrating parties, and is checked in the request target URL only. Therefore, make sure this URL correctly contains the scope. As a payload we always expect a JSON that contains: * Channel order id (`channelOrderId`) * Date(UTC) when order was placed in ISO 8601 format (`orderDate`) * Id of the channel link (`channelLinkId`) * Array of rating objects (`rating`) * Subject of the rating. See allowed values in Rating Subjects table (`subject`) * Rating value from 0 to 10 (`rating`) * [Optional] Comment for the rating (`comment`) * [Optional] Reason for negative rating. See allowed values in Rating Reasons table (`reason`) #### Rating Subjects | Subject | Integer value | | - | - | | Restaurant | 1 | | Delivery | 2 | #### Rating reasons | Reason | Integer value | | - | - | | Item missing | 1 | | Order issue | 2 | | Order is wrong | 3 | | Food isn't fresh | 4 | | Food is cold | 5 | | Box was opened | 6 | | Delivery late | 7 | | Delivery issue | 8 | | Rude staff | 9 | | No issues | 10000 |"
+        "requestBody":
+          "content":
+            "application/json":
+              "schema":
+                "type": "object"
+                "example":
+                  "channelOrderId": "CXTDBKMZ-1229"
+                  "orderDate": "2021-04-13T11:53:34.453000Z"
+                  "channelLinkId": "606d8489fcd8eddf13b121a6"
+                  "rating":
+                    -
+                      "reason": 10000
+                      "rating": 5
+                      "comment": "Food was amazing."
+                      "subject": 1
+                    -
+                      "rating": 5
+                      "subject": 2
+        "parameters":
+          -
+            "name": "Authorization"
+            "in": "header"
+            "schema":
+              "type": "string"
+            "example": "{authToken}"
+          -
+            "name": "channelName"
+            "in": "path"
+            "schema":
+              "type": "string"
+            "required": true
+        "responses":
+          "200":
+            "description": "Successful response"
+            "content":
+              "application/json": {}
+    "/fulfillment/generic/events":
+      "post":
+        "tags":
+          - "Dispatch API > Deliverect Endpoints"
+        "summary": "Update delivery"
+        "description": "This webhook allows to persist updates from third party delivery systems to Deliverect. Currently updates to following delivery information are supported. See examples for technical details. - delivery status - pickup time & eta - delivery time & eta - courier information ##### Delivery job statuses: Following delivery job statuses exist in deliverect: | Status name | Integer value | |-|-| | `IN_DELIVERY` | 80 | | `EN_ROUTE_TO_PICKUP` | 83 | | `ARRIVED_AT_PICKUP` | 85 | | `EN_ROUTE_TO_DROPOFF` | 87 | | `ARRIVED_AT_DROPOFF` | 89 | | `DELIVERED` | 90 | ##### NOTE Please note, that here and later all dates and times, coming from/to Deliverect are UTC."
+        "requestBody":
+          "content":
+            "application/json":
+              "schema":
+                "type": "object"
+                "example":
+                  "deliveryJobId": "602***66a"
+                  "externalJobId": "DJ214233"
+                  "pickupTimeETA": "2021-05-13T13:59:00Z"
+                  "transportType": "bicycle"
+                  "courier":
+                    "name": "Mac Miller"
+                    "phone": "+3292331234"
+                    "longitude": "51.05433703603857"
+                    "latitude": "3.738214852809371"
+                  "locations":
+                    -
+                      "orderId": "602987dd539d9697c836198b"
+                      "channelOrderDisplayId": "1234567890"
+                      "status": 40
+                      "deliveryTimeETA": "2021-05-13T14:13:00Z"
+        "responses":
+          "200":
+            "description": "200"
+            "content":
+              "application/json":
+                "schema":
+                  "type": "object"
+                "example": "OK"
+              "text/plain":
+                "schema":
+                  "type": "string"
+                "example": "OK"
+          "default":
+            "description": "default"
+            "content":
+              "text/plain":
+                "schema":
+                  "type": "string"
+                "example": null
+    "/fulfillment/cancel":
+      "post":
+        "tags":
+          - "Dispatch API > Deliverect Endpoints"
+        "summary": "Cancel Delivery"
+        "requestBody":
+          "content": {}
+        "responses":
+          "default":
+            "description": "default"
+            "content":
+              "text/plain":
+                "schema":
+                  "type": "string"
+                "example": null
+    "/integrator.com/validateJob}":
+      "post":
+        "tags":
+          - "Dispatch API > Partner Webhooks"
+        "summary": "Validate delivery job"
+        "description": "Gets called to validate if there are drivers available and to check if it's possible to deliver one or multiple orders ##### You can find some request parameters in the table below: | Parameter | Meaning | Type | | --- | --- | --- | | `jobId` | Deliverect delivery job id | string | | `pickupTime` | Expected pick up time | string | | `pickupLocation` | Order pick up location | object | | `deliveryLocations` | Array of delivery locations | array[object] | | `deliveryLocations.orderId` | Deliverect order id | string | | `deliveryLocations.channelOrderDisplayId` | Channel order id | string | | `deliveryLocations.deliveryTime` | Expected delivery time | string | | `deliveryLocations.packageSize` | Package size | string | | `deliveryLocations.payment.orderIsAlreadyPaid` | Indicates if order has been paid already | bool | | `deliveryLocations.payment.amount` | Payment amount | integer | | `deliveryLocations.payment.paymentType` | Payment type | integer | | `deliveryLocations.payment.paysWith` | Customer pays with specified amount of money. Can be used to calculate change. | integer | ##### You can find some response parameters in the table below: | Parameter | Meaning | Type | |-|-|-| | `jobId` | Deliverect delivery job id | string | | `canDeliver` | Indicates if delivery partner able complete delivery job | bool | | `pickupTimeETA` | Estimated pick up time | string | | `price` | This is the cost charged for delivery | object | | `price.price` | Delivery cost (`1000` stands for `10.00`) | integer | | `price.taxRate` | Tax rate for delivery(`10000` stands for `10.00%`) | integer | | `courierId` | This is the unique identifier of the rider | string | | `externalJobId` | Job id in delivery partner system | integer | | `deliveryLocations.deliveryId` | Id of the delivery generated by delivery partner | string | | `deliveryLocations.orderId` | Deliverect order id | string | | `deliveryLocations.deliveryTimeETA` | Estimated delivery up time | string | ##### Transport types: Following transport types supported by deliverect: | Transport type name | String value | |-|-| | `UNKNOWN` | unknown | | `BICYCLE` | bicycle | | `CARGOBIKE` | cargobike | | `MOTORBIKE` | motorbike | | `MOTORBIKE XL` | motorbikexl | | `CAR` | car | ##### Package sizes: Following package sizes supported by deliverect: | Package size name | String value | |-|-| | `UNKNOWN` | unknown | | `SMALL` | small | | `MEDIUM` | medium | | `LARGE` | large | | `EXTRA LARGE` | extraLarge | ##### Payment info: Together with delivery location info we send payment information which include if order has been paid already, amount of payment and payment type. Following payment types are supported by Deliverect at the moment: | Payment type name | Integer value | |-|-| | credit card online | 0 | | cash | 1 | ##### Error codes: If delivery is not possible one or more of following error codes expected to be returned in response: | Deliverect error tag | Description | Integer value | |-|-|-| | `UNKNOWN` | unknown error occurred | 0 | | `INTERNAL ERROR` | internal error occurred | 5 | | `PACKAGE SIZE TOO LARGE` | package is too big to be delivered | 10 | | `INVALID PACKAGE SIZE` | provided package size is invalid | 15 | | `NO DRIVERS AVAILABLE` | no drivers available | 20 | | `INVALID DELIVERY DATA` | provided data is not valid | 25 | | `OUTSIDE DELIVERY AREA` | pickup or drop off location is outside delivery zone | 30 | | `TOO MANY PACKAGES` | too many packages within a delivery job | 40 | | `DELIVERY ADDRESS NOT RECOGNIZED` | delivery address is not recognized | 50 | | `PICKUP ADDRESS NOT RECOGNIZED` | pickup address is not recognized | 60 | | `UNKNOWN DELIVERY JOB` | job with provided id not found of doesn't exist | 70 | | `CONTACT DATA INVALID` | invalid contact person data | 80 | | `INVALID COORDINATES` | provided coordinates is not valid | 90 | | `TIME NOT ALLOWED` | pickup or delivery time is not allowed | 100 | | `PAYMENT DECLINED` | payment declined | 110 | | `DUPLICATE JOB` | delivery job already exists | 120 | | `CANNOT TRAVEL TO DELIVERY` | drop off locations is not reachable | 130 | | `CANNOT CANCEL` | cancel is not possible | 140 | | `DATE FORMAT ERROR` | invalid date format | 150 |"
+        "requestBody":
+          "content":
+            "application/json":
+              "schema":
+                "type": "object"
+                "example":
+                  "jobId": "609***72e"
+                  "account": "5f1***131"
+                  "pickupTime": "2021-05-13T13:40:04Z"
+                  "transportType": "unknown"
+                  "pickupLocation":
+                    "location": "606***555"
+                    "name": "Deliverect's Pizza Place"
+                    "remarks": "please use the backdoor for order pickup"
+                    "street": "van Ghentlaan"
+                    "streetNumber": "3"
+                    "postalCode": "9000 LK"
+                    "city": "Leusden"
+                    "latitude": "52.379189"
+                    "longitude": "4.899431"
+                  "deliveryLocations":
+                    -
+                      "orderId": "609***4dd"
+                      "channelOrderDisplayId": "MT4YVTPL"
+                      "deliveryTime": "2021-05-13T13:55:00Z"
+                      "packageSize": "unknown"
+                      "orderDescription": "hot food"
+                      "company": "BrainQuantums"
+                      "name": "V. Bertels"
+                      "street": "Refugehof"
+                      "streetNumber": "49"
+                      "postalCode": "9001 AB"
+                      "city": "Leusden"
+                      "phone": "+32123456789"
+                      "deliveryRemarks": "Don't ring door bell."
+                      "latitude": "52.379189"
+                      "longitude": "4.899431"
+                      "payment":
+                        "orderIsAlreadyPaid": true
+                        "amount": 1100
+                        "paymentType": 0
+        "parameters":
+          -
+            "name": "X-Server-Authorization-HMAC-SHA256"
+            "in": "header"
+            "schema":
+              "type": "string"
+            "example": "HMAC-Signature"
+        "responses":
+          "200":
+            "description": "200"
+            "content":
+              "application/json":
+                "schema":
+                  "type": "object"
+                "example":
+                  "jobId": "609***72e"
+                  "canDeliver": true
+                  "pickupTimeETA": "2021-05-13T13:42:00Z"
+                  "deliveryLocations":
+                    -
+                      "deliveryId": "ABC567"
+                      "orderId": "5f47a223280a29046404e2af"
+                      "deliveryTimeETA": "2021-05-13T13:59:00Z"
+                  "price":
+                    "price": 750
+                    "taxRate": 10000
+          "406":
+            "description": "406"
+            "content":
+              "application/json":
+                "schema":
+                  "type": "object"
+                "example":
+                  "jobId": ""
+                  "canDeliver": false
+                  "errors":
+                    -
+                      "deliveryId": ""
+                      "orderId": ""
+                      "channelOrderDisplayId": ""
+                      "reason": 10
+                      "description": "package size too large for delivery type"
+                    -
+                      "deliveryId": ""
+                      "orderId": ""
+                      "channelOrderDisplayId": ""
+                      "reason": 20
+                      "description": "No drivers available at this time"
+                    -
+                      "deliveryId": ""
+                      "orderId": ""
+                      "channelOrderDisplayId": ""
+                      "reason": 30
+                      "description": "address outside of delivery area"
+                    -
+                      "deliveryId": ""
+                      "orderId": ""
+                      "channelOrderDisplayId": ""
+                      "reason": 40
+                      "description": "too many packages for selected transport type"
+    "//integrator.com/createJob}":
+      "post":
+        "tags":
+          - "Dispatch API > Partner Webhooks"
+        "summary": "Create delivery job"
+        "description": "Creates a delivery job for one or more orders"
+        "requestBody":
+          "content":
+            "application/json":
+              "schema":
+                "type": "object"
+                "example":
+                  "jobId": "609***72e"
+                  "account": "5f1***131"
+                  "pickupTime": "2021-05-13T13:40:04Z"
+                  "transportType": "unknown"
+                  "pickupLocation":
+                    "location": "606***555"
+                    "name": "Deliverect's Pizza Place"
+                    "remarks": "please use the backdoor for order pickup"
+                    "street": "van Ghentlaan"
+                    "streetNumber": "3"
+                    "postalCode": "9000 LK"
+                    "city": "Leusden"
+                    "latitude": "52.379189"
+                    "longitude": "4.899431"
+                  "deliveryLocations":
+                    -
+                      "orderId": "609***4dd"
+                      "channelOrderDisplayId": "MT4YVTPL"
+                      "deliveryTime": "2021-05-13T13:55:00Z"
+                      "packageSize": "unknown"
+                      "orderDescription": "hot food"
+                      "company": "BrainQuantums"
+                      "name": "V. Bertels"
+                      "street": "Refugehof"
+                      "streetNumber": "49"
+                      "postalCode": "9001 AB"
+                      "city": "Leusden"
+                      "phone": "+32123456789"
+                      "deliveryRemarks": "Don't ring door bell."
+                      "latitude": "52.379189"
+                      "longitude": "4.899431"
+                      "payment":
+                        "orderIsAlreadyPaid": true
+                        "amount": 1100
+                        "paymentType": 0
+        "parameters":
+          -
+            "name": "X-Server-Authorization-HMAC-SHA256"
+            "in": "header"
+            "schema":
+              "type": "string"
+            "example": "HMAC-Signature"
+        "responses":
+          "200":
+            "description": "200"
+            "content":
+              "application/json":
+                "schema":
+                  "type": "object"
+                "example":
+                  "jobId": "609***72e"
+                  "canDeliver": true
+                  "pickupTimeETA": "2021-05-13T13:42:00Z"
+                  "externalJobId": "DJ123456"
+                  "distance": 4200
+                  "duration": 31
+                  "price":
+                    "price": 750
+                    "taxRate": 10000
+                  "courier":
+                    "courierId": "D1234"
+                    "firstName": "Delivery"
+                    "lastName": "Rider"
+                    "phoneNumber": "0032494112233"
+                    "transportType": "bicycle"
+                  "deliveryLocations":
+                    -
+                      "deliveryId": "ABC567"
+                      "orderId": "5f4***e2af"
+                      "channelOrderDisplayId": "MT4YVTPL"
+                      "deliveryTimeETA": "2021-05-13T13:57:00Z"
+                      "deliveryRemarks": ""
+                      "packageSize": "small"
+    "/cancelJob":
+      "post":
+        "tags":
+          - "Dispatch API > Partner Webhooks"
+        "summary": "Cancel delivery job"
+        "description": "Cancel a delivery job after it was created at the partner. This can happen if all the orders on the job cannot be fulfilled or if the customer no longer wants the delivery."
+        "requestBody":
+          "content":
+            "application/json":
+              "schema":
+                "type": "object"
+                "example":
+                  "jobId": "5c8fbfd3c6489f00010e50d1"
+                  "account": "5be9fe94c6489f0001b2fe57"
+                  "pickupLocation":
+                    "location": "5ea823bc8b4c780001a674a9"
+                  "deliveryLocations":
+                    -
+                      "orderId": "5f47a223280a29046404e2af"
+                      "channelOrderDisplayId": "MT4YVTPL"
+                      "deliveryId": "ABC567"
+                  "courier":
+                    "courierId": "D1234"
+        "parameters":
+          -
+            "name": "X-Server-Authorization-HMAC-SHA256"
+            "in": "header"
+            "schema":
+              "type": "string"
+            "example": "HMAC-Signature"
+        "responses":
+          "200":
+            "description": "200"
+            "content":
+              "application/json":
+                "schema":
+                  "type": "object"
+                "example":
+                  "status": "confirmed"
+                  "reason": ""
+                  "price": 0
+    "/products":
+      "get":
+        "tags":
+          - "Store API > Deliverect Endpoints"
+        "summary": "Get Products for Account"
+        "parameters":
+          -
+            "name": "where"
+            "in": "query"
+            "schema":
+              "type": "string"
+            "example":
+              "account": "{{accountId}}"
+        "responses":
+          "default":
+            "description": "default"
+            "headers":
+              "Content-Type":
+                "schema":
+                  "type": "string"
+                  "example": "application/json"
+            "content":
+              "application/json":
+                "schema":
+                  "type": "object"
+                "example":
+                  "_items":
+                    -
+                      "_id": "622fd8b********eb7dc24d"
+                      "name": "Add a side"
+                      "description": ""
+                      "nameTranslations":
+                        "en": "Choose a side"
+                        "es": "Elige tu acompañamiento"
+                        "fr": "Choisissez votre garniture"
+                        "nl": "Kies je bijgerecht"
+                      "descriptionTranslations": {}
+                      "_created": "2022-03-15T00:07:16.422000Z"
+                      "_updated": "2022-03-15T00:07:16.422000Z"
+                      "_etag": "2715877681451ad6ddae50679c044bb56bef30ac"
+                      "account": "5ff6ee089328c8aefeeabe33"
+                      "location": "5ff6ee659328c8aefeeac2a7"
+                      "productType": 3
+                      "plu": "MOD-02"
+                      "multiply": 1
+                      "posProductId": "POS-ID-003"
+                      "posProductCategoryId": ""
+                      "subProducts":
+                        - "622fd8b4ac990eb2eb7dc255"
+                        - "622fd8b4ac990eb2eb7dc257"
+                        - "622fd8b4ac990eb2eb7dc259"
+                      "productTags": []
+                      "posCategoryIds": []
+                      "isInternal": false
+                      "max": 0
+                      "min": 1
+                      "sortOrder": 0
+                      "capacityUsages": []
+                      "priceLevels": {}
+                      "deliveryTax": 9000
+                      "takeawayTax": 9000
+                      "eatInTax": 9000
+                      "_links":
+                        "self":
+                          "title": "products"
+                          "href": "products/622fd8b4ac990eb2eb7dc24d"
+                        "related":
+                          "subProducts":
+                            -
+                              "title": "products"
+                              "href": "products/622fd8b4ac990eb2eb7dc255"
+                            -
+                              "title": "products"
+                              "href": "products/622fd8b4ac990eb2eb7dc257"
+                            -
+                              "title": "products"
+                              "href": "products/622fd8b4ac990eb2eb7dc259"
+                    -
+                      "_id": "622fd8b4ac990eb2eb7dc24f"
+                      "name": "Rare"
+                      "description": ""
+                      "nameTranslations":
+                        "en": "Rare"
+                        "es": "Poco hecho"
+                        "fr": "Saignant"
+                        "nl": "Rood"
+                      "descriptionTranslations": {}
+                      "_created": "2022-03-15T00:07:16.422000Z"
+                      "_updated": "2022-03-15T00:07:16.422000Z"
+                      "_etag": "be71204aaf77a4cf1676d698ec32a76a090f0e41"
+                      "account": "5ff6ee089328c8aefeeabe33"
+                      "location": "5ff6ee659328c8aefeeac2a7"
+                      "productType": 2
+                      "plu": "COOK-01"
+                      "multiply": 1
+                      "posProductId": "POS-ID-004"
+                      "posProductCategoryId": ""
+                      "subProducts": []
+                      "productTags": []
+                      "posCategoryIds": []
+                      "isInternal": false
+                      "max": 0
+                      "min": 0
+                      "sortOrder": 0
+                      "capacityUsages": []
+                      "price": 0
+                      "priceLevels": {}
+                      "deliveryTax": 9000
+                      "takeawayTax": 9000
+                      "eatInTax": 9000
+                      "_links":
+                        "self":
+                          "title": "products"
+                          "href": "products/622fd8b4ac990eb2eb7dc24f"
+                    -
+                      "_id": "622fd8b4ac990eb2eb7dc251"
+                      "name": "Medium Rare"
+                      "description": ""
+                      "nameTranslations":
+                        "en": "Medium Rare"
+                        "es": "Al punto"
+                        "fr": "À point"
+                        "nl": "Half doorbakken"
+                      "descriptionTranslations": {}
+                      "_created": "2022-03-15T00:07:16.422000Z"
+                      "_updated": "2022-03-15T00:07:16.422000Z"
+                      "_etag": "16bba91773586b8aac42ae02e16a9384073bf809"
+                      "account": "5ff6ee089328c8aefeeabe33"
+                      "location": "5ff6ee659328c8aefeeac2a7"
+                      "productType": 2
+                      "plu": "COOK-02"
+                      "multiply": 1
+                      "posProductId": "POS-ID-005"
+                      "posProductCategoryId": ""
+                      "subProducts": []
+                      "productTags": []
+                      "posCategoryIds": []
+                      "isInternal": false
+                      "max": 0
+                      "min": 0
+                      "sortOrder": 0
+                      "capacityUsages": []
+                      "price": 0
+                      "priceLevels": {}
+                      "deliveryTax": 9000
+                      "takeawayTax": 9000
+                      "eatInTax": 9000
+                      "_links":
+                        "self":
+                          "title": "products"
+                          "href": "products/622fd8b4ac990eb2eb7dc251"
+                    -
+                      "_id": "622fd8b4ac990eb2eb7dc255"
+                      "name": "Fries"
+                      "description": ""
+                      "nameTranslations":
+                        "en": "Fries"
+                        "es": "Patatas fritas"
+                        "fr": "Frites"
+                        "nl": "Frietjes"
+                      "descriptionTranslations": {}
+                      "_created": "2022-03-15T00:07:16.422000Z"
+                      "_updated": "2022-03-15T00:07:16.422000Z"
+                      "_etag": "2f6c78768a648d49a91723e365b38db4b0fcb94c"
+                      "account": "5ff6ee089328c8aefeeabe33"
+                      "location": "5ff6ee659328c8aefeeac2a7"
+                      "productType": 2
+                      "plu": "SI-01"
+                      "multiply": 1
+                      "posProductId": "POS-ID-006"
+                      "posProductCategoryId": ""
+                      "subProducts": []
+                      "productTags": []
+                      "posCategoryIds": []
+                      "isInternal": false
+                      "max": 0
+                      "min": 0
+                      "defaultQuantity": 1
+                      "sortOrder": 0
+                      "capacityUsages": []
+                      "price": 0
+                      "priceLevels": {}
+                      "deliveryTax": 9000
+                      "takeawayTax": 9000
+                      "eatInTax": 9000
+                      "_links":
+                        "self":
+                          "title": "products"
+                          "href": "products/622fd8b4ac990eb2eb7dc255"
+                    -
+                      "_id": "622fd8b4ac990eb2eb7dc257"
+                      "name": "Salad"
+                      "description": ""
+                      "nameTranslations":
+                        "en": "Salad"
+                        "es": "Ensalada"
+                        "fr": "Salade"
+                        "nl": "Salade"
+                      "descriptionTranslations": {}
+                      "_created": "2022-03-15T00:07:16.422000Z"
+                      "_updated": "2022-03-15T00:07:16.422000Z"
+                      "_etag": "fbd9ebc70111fea3ce22cfcfdf8938f5490974ae"
+                      "account": "5ff6ee089328c8aefeeabe33"
+                      "location": "5ff6ee659328c8aefeeac2a7"
+                      "productType": 2
+                      "plu": "SI-02"
+                      "multiply": 1
+                      "posProductId": "POS-ID-007"
+                      "posProductCategoryId": ""
+                      "subProducts": []
+                      "productTags": []
+                      "posCategoryIds": []
+                      "isInternal": false
+                      "max": 0
+                      "min": 0
+                      "sortOrder": 0
+                      "capacityUsages": []
+                      "price": 200
+                      "priceLevels": {}
+                      "deliveryTax": 9000
+                      "takeawayTax": 9000
+                      "eatInTax": 9000
+                      "_links":
+                        "self":
+                          "title": "products"
+                          "href": "products/622fd8b4ac990eb2eb7dc257"
+                    -
+                      "_id": "622fd8b4ac990eb2eb7dc259"
+                      "name": "Mashed Potato"
+                      "description": ""
+                      "nameTranslations":
+                        "en": "Mashed Potato"
+                        "es": "Puré de patata"
+                        "fr": "Purée de pommes de terre"
+                        "nl": "Aardappelpuree"
+                      "descriptionTranslations": {}
+                      "_created": "2022-03-15T00:07:16.422000Z"
+                      "_updated": "2022-03-15T00:07:16.422000Z"
+                      "_etag": "05d48dd6689a7885f01971197480b9ce8fb24151"
+                      "account": "5ff6ee089328c8aefeeabe33"
+                      "location": "5ff6ee659328c8aefeeac2a7"
+                      "productType": 2
+                      "plu": "SI-03"
+                      "multiply": 1
+                      "posProductId": "POS-ID-008"
+                      "posProductCategoryId": ""
+                      "subProducts": []
+                      "productTags": []
+                      "posCategoryIds": []
+                      "isInternal": false
+                      "max": 0
+                      "min": 0
+                      "sortOrder": 0
+                      "capacityUsages": []
+                      "price": 100
+                      "priceLevels": {}
+                      "deliveryTax": 9000
+                      "takeawayTax": 9000
+                      "eatInTax": 9000
+                      "_links":
+                        "self":
+                          "title": "products"
+                          "href": "products/622fd8b4ac990eb2eb7dc259"
+                    -
+                      "_id": "622fd8b4ac990eb2eb7dc25b"
+                      "name": "Chicken Sate"
+                      "description": "Product with Nested Modifiers - Multimax variables - Allergens (tags)"
+                      "nameTranslations": {}
+                      "descriptionTranslations": {}
+                      "_created": "2022-03-15T00:07:16.422000Z"
+                      "_updated": "2022-03-15T00:07:16.422000Z"
+                      "_etag": "f9d4e488bc46c73379bc7f44ec26402c7167878f"
+                      "account": "5ff6ee089328c8aefeeabe33"
+                      "location": "5ff6ee659328c8aefeeac2a7"
+                      "productType": 1
+                      "plu": "P-SATE"
+                      "multiply": 1
+                      "posProductId": "POS-ID-009"
+                      "posProductCategoryId": ""
+                      "subProducts":
+                        - "622fd8b4ac990eb2eb7dc25d"
+                        - "622fd8b4ac990eb2eb7dc25f"
+                      "productTags":
+                        - 104
+                        - 108
+                      "posCategoryIds":
+                        - "SATE"
+                      "imageUrl": "https://storage.googleapis.com/ikona-bucket-staging/images/5ff6ee089328c8aefeeabe33/satay-62284e3c8c506f015be60184.jpeg"
+                      "isInternal": false
+                      "max": 0
+                      "min": 0
+                      "sortOrder": 0
+                      "capacityUsages": []
+                      "price": 450
+                      "priceLevels": {}
+                      "deliveryTax": 9000
+                      "takeawayTax": 9000
+                      "eatInTax": 9000
+                      "_links":
+                        "self":
+                          "title": "products"
+                          "href": "products/622fd8b4ac990eb2eb7dc25b"
+                        "related":
+                          "subProducts":
+                            -
+                              "title": "products"
+                              "href": "products/622fd8b4ac990eb2eb7dc25d"
+                            -
+                              "title": "products"
+                              "href": "products/622fd8b4ac990eb2eb7dc25f"
+                    -
+                      "_id": "622fd8b4ac990eb2eb7dc261"
+                      "name": "White Rice"
+                      "description": "White coloured rice"
+                      "nameTranslations": {}
+                      "descriptionTranslations": {}
+                      "_created": "2022-03-15T00:07:16.423000Z"
+                      "_updated": "2022-03-15T00:07:16.423000Z"
+                      "_etag": "93d3797000158ddbfba6e555975812b00fd440f9"
+                      "account": "5ff6ee089328c8aefeeabe33"
+                      "location": "5ff6ee659328c8aefeeac2a7"
+                      "productType": 1
+                      "plu": "RICE-01"
+                      "multiply": 1
+                      "posProductId": "POS-ID-012"
+                      "posProductCategoryId": ""
+                      "subProducts":
+                        - "622fd8b4ac990eb2eb7dc269"
+                      "productTags": []
+                      "posCategoryIds":
+                        - "SD"
+                      "imageUrl": "https://storage.googleapis.com/ikona-bucket-staging/images/5ff6ee089328c8aefeeabe33/nasiputi-1610290140494.jpg"
+                      "isInternal": false
+                      "max": 0
+                      "min": 0
+                      "sortOrder": 0
+                      "capacityUsages": []
+                      "price": 450
+                      "priceLevels": {}
+                      "deliveryTax": 9000
+                      "takeawayTax": 9000
+                      "eatInTax": 9000
+                      "_links":
+                        "self":
+                          "title": "products"
+                          "href": "products/622fd8b4ac990eb2eb7dc261"
+                        "related":
+                          "subProducts":
+                            -
+                              "title": "products"
+                              "href": "products/622fd8b4ac990eb2eb7dc269"
+                    -
+                      "_id": "622fd8b4ac990eb2eb7dc265"
+                      "name": "Egg Noodles"
+                      "description": "Egg noodles and veggies fried and tossed with a delicious sauce"
+                      "nameTranslations": {}
+                      "descriptionTranslations": {}
+                      "_created": "2022-03-15T00:07:16.423000Z"
+                      "_updated": "2022-03-15T00:07:16.423000Z"
+                      "_etag": "82fe6073cf8ad734790611a88c994b878700eb98"
+                      "account": "5ff6ee089328c8aefeeabe33"
+                      "location": "5ff6ee659328c8aefeeac2a7"
+                      "productType": 1
+                      "plu": "NOOD-01"
+                      "multiply": 1
+                      "posProductId": "POS-ID-014"
+                      "posProductCategoryId": ""
+                      "subProducts":
+                        - "622fd8b4ac990eb2eb7dc269"
+                      "productTags": []
+                      "posCategoryIds":
+                        - "SD"
+                      "imageUrl": "https://storage.googleapis.com/ikona-bucket-staging/images/5ff6ee089328c8aefeeabe33/bamigoreng-1610289922969.jpg"
+                      "isInternal": false
+                      "max": 0
+                      "min": 0
+                      "sortOrder": 0
+                      "capacityUsages": []
+                      "price": 450
+                      "priceLevels": {}
+                      "deliveryTax": 9000
+                      "takeawayTax": 9000
+                      "eatInTax": 9000
+                      "_links":
+                        "self":
+                          "title": "products"
+                          "href": "products/622fd8b4ac990eb2eb7dc265"
+                        "related":
+                          "subProducts":
+                            -
+                              "title": "products"
+                              "href": "products/622fd8b4ac990eb2eb7dc269"
+                    -
+                      "_id": "622fd8b4ac990eb2eb7dc267"
+                      "name": "Ramen Noodles"
+                      "description": "Chinese-style wheat noodles"
+                      "nameTranslations": {}
+                      "descriptionTranslations": {}
+                      "_created": "2022-03-15T00:07:16.423000Z"
+                      "_updated": "2022-03-15T00:07:16.423000Z"
+                      "_etag": "31517b482377d626dba89d13fd72bda726ed4b3e"
+                      "account": "5ff6ee089328c8aefeeabe33"
+                      "location": "5ff6ee659328c8aefeeac2a7"
+                      "productType": 1
+                      "plu": "NOOD-02"
+                      "multiply": 1
+                      "posProductId": "POS-ID-015"
+                      "posProductCategoryId": ""
+                      "subProducts":
+                        - "622fd8b4ac990eb2eb7dc269"
+                      "productTags": []
+                      "posCategoryIds":
+                        - "SD"
+                      "imageUrl": "https://storage.googleapis.com/ikona-bucket-staging/images/5ff6ee089328c8aefeeabe33/Mihoen-2-1-1610289870157.jpg"
+                      "isInternal": false
+                      "max": 0
+                      "min": 0
+                      "sortOrder": 0
+                      "capacityUsages": []
+                      "price": 450
+                      "priceLevels": {}
+                      "deliveryTax": 9000
+                      "takeawayTax": 9000
+                      "eatInTax": 9000
+                      "_links":
+                        "self":
+                          "title": "products"
+                          "href": "products/622fd8b4ac990eb2eb7dc267"
+                        "related":
+                          "subProducts":
+                            -
+                              "title": "products"
+                              "href": "products/622fd8b4ac990eb2eb7dc269"
+                    -
+                      "_id": "622fd8b4ac990eb2eb7dc26b"
+                      "name": "Sate Sauce"
+                      "description": ""
+                      "nameTranslations": {}
+                      "descriptionTranslations": {}
+                      "_created": "2022-03-15T00:07:16.423000Z"
+                      "_updated": "2022-03-15T00:07:16.423000Z"
+                      "_etag": "424be2d9e4483177d78aef72749492572f977997"
+                      "account": "5ff6ee089328c8aefeeabe33"
+                      "location": "5ff6ee659328c8aefeeac2a7"
+                      "productType": 2
+                      "plu": "SAUCE-01"
+                      "multiply": 1
+                      "posProductId": "POS-ID-017"
+                      "posProductCategoryId": ""
+                      "subProducts": []
+                      "productTags": []
+                      "posCategoryIds": []
+                      "isInternal": false
+                      "max": 0
+                      "min": 0
+                      "sortOrder": 0
+                      "capacityUsages": []
+                      "price": 50
+                      "priceLevels": {}
+                      "deliveryTax": 9000
+                      "takeawayTax": 9000
+                      "eatInTax": 9000
+                      "_links":
+                        "self":
+                          "title": "products"
+                          "href": "products/622fd8b4ac990eb2eb7dc26b"
+                    -
+                      "_id": "622fd8b4ac990eb2eb7dc26d"
+                      "name": "Hot Sauce"
+                      "description": ""
+                      "nameTranslations": {}
+                      "descriptionTranslations": {}
+                      "_created": "2022-03-15T00:07:16.423000Z"
+                      "_updated": "2022-03-15T00:07:16.423000Z"
+                      "_etag": "e9d50ad67406d4c6b833df8763b3a0a2a9cded5f"
+                      "account": "5ff6ee089328c8aefeeabe33"
+                      "location": "5ff6ee659328c8aefeeac2a7"
+                      "productType": 2
+                      "plu": "SAUCE-02"
+                      "multiply": 1
+                      "posProductId": "POS-ID-018"
+                      "posProductCategoryId": ""
+                      "subProducts": []
+                      "productTags": []
+                      "posCategoryIds": []
+                      "isInternal": false
+                      "max": 0
+                      "min": 0
+                      "sortOrder": 0
+                      "capacityUsages": []
+                      "price": 50
+                      "priceLevels": {}
+                      "deliveryTax": 9000
+                      "takeawayTax": 9000
+                      "eatInTax": 9000
+                      "_links":
+                        "self":
+                          "title": "products"
+                          "href": "products/622fd8b4ac990eb2eb7dc26d"
+                    -
+                      "_id": "622fd8b4ac990eb2eb7dc26f"
+                      "name": "Burger Combo (Drink not Included)"
+                      "description": "Combo with Bundles - Modifier Groups as Upsell"
+                      "nameTranslations": {}
+                      "descriptionTranslations": {}
+                      "_created": "2022-03-15T00:07:16.423000Z"
+                      "_updated": "2022-03-15T00:07:16.423000Z"
+                      "_etag": "f7e7f78062028d530e3bbf7ab82c95457aa23924"
+                      "account": "5ff6ee089328c8aefeeabe33"
+                      "location": "5ff6ee659328c8aefeeac2a7"
+                      "productType": 1
+                      "plu": "P-BRGR"
+                      "multiply": 1
+                      "posProductId": "POS-ID-019"
+                      "posProductCategoryId": ""
+                      "subProducts":
+                        - "622fd8b4ac990eb2eb7dc271"
+                        - "622fd8b4ac990eb2eb7dc273"
+                        - "622fd8b4ac990eb2eb7dc275"
+                      "productTags": []
+                      "posCategoryIds":
+                        - "BURG"
+                      "imageUrl": "https://storage.googleapis.com/ikona-bucket-staging/images/5ff6ee089328c8aefeeabe33/burger-62286be78c506f015be60190.jpeg"
+                      "isInternal": false
+                      "isCombo": true
+                      "max": 0
+                      "min": 0
+                      "sortOrder": 0
+                      "capacityUsages": []
+                      "price": 950
+                      "priceLevels": {}
+                      "deliveryTax": 9000
+                      "takeawayTax": 9000
+                      "eatInTax": 9000
+                      "_links":
+                        "self":
+                          "title": "products"
+                          "href": "products/622fd8b4ac990eb2eb7dc26f"
+                        "related":
+                          "subProducts":
+                            -
+                              "title": "products"
+                              "href": "products/622fd8b4ac990eb2eb7dc271"
+                            -
+                              "title": "products"
+                              "href": "products/622fd8b4ac990eb2eb7dc273"
+                            -
+                              "title": "products"
+                              "href": "products/622fd8b4ac990eb2eb7dc275"
+                    -
+                      "_id": "622fd8b4ac990eb2eb7dc273"
+                      "name": "Fries Selection"
+                      "description": ""
+                      "nameTranslations": {}
+                      "descriptionTranslations": {}
+                      "_created": "2022-03-15T00:07:16.423000Z"
+                      "_updated": "2022-03-15T00:07:16.423000Z"
+                      "_etag": "a91312a5e9fae3539769038c06b8f246744a40f2"
+                      "account": "5ff6ee089328c8aefeeabe33"
+                      "location": "5ff6ee659328c8aefeeac2a7"
+                      "productType": 3
+                      "plu": "MG-FRS"
+                      "multiply": 1
+                      "posProductId": "POS-ID-021"
+                      "posProductCategoryId": ""
+                      "subProducts":
+                        - "622fd8b4ac990eb2eb7dc277"
+                        - "622fd8b4ac990eb2eb7dc279"
+                        - "622fd8b4ac990eb2eb7dc27b"
+                      "productTags": []
+                      "posCategoryIds": []
+                      "isInternal": false
+                      "max": 1
+                      "min": 1
+                      "sortOrder": 0
+                      "capacityUsages": []
+                      "priceLevels": {}
+                      "deliveryTax": 9000
+                      "takeawayTax": 9000
+                      "eatInTax": 9000
+                      "_links":
+                        "self":
+                          "title": "products"
+                          "href": "products/622fd8b4ac990eb2eb7dc273"
+                        "related":
+                          "subProducts":
+                            -
+                              "title": "products"
+                              "href": "products/622fd8b4ac990eb2eb7dc277"
+                            -
+                              "title": "products"
+                              "href": "products/622fd8b4ac990eb2eb7dc279"
+                            -
+                              "title": "products"
+                              "href": "products/622fd8b4ac990eb2eb7dc27b"
+                    -
+                      "_id": "622fd8b4ac990eb2eb7dc275"
+                      "name": "Add a Drink? (not included)"
+                      "description": ""
+                      "nameTranslations": {}
+                      "descriptionTranslations": {}
+                      "_created": "2022-03-15T00:07:16.423000Z"
+                      "_updated": "2022-07-06T08:03:11.000000Z"
+                      "_etag": "def3a76097f22874ed0ec2e5481b74865c113467"
+                      "account": "5ff6ee089328c8aefeeabe33"
+                      "location": "5ff6ee659328c8aefeeac2a7"
+                      "productType": 3
+                      "plu": "UPSLL-01"
+                      "multiply": 1
+                      "posProductId": "POS-ID-022"
+                      "posProductCategoryId": ""
+                      "subProducts":
+                        - "622fd8b4ac990eb2eb7dc283"
+                        - "622fd8b4ac990eb2eb7dc285"
+                        - "622fd8b4ac990eb2eb7dc287"
+                      "productTags": []
+                      "posCategoryIds": []
+                      "isInternal": false
+                      "max": 0
+                      "min": 0
+                      "multiMax": 0
+                      "sortOrder": 0
+                      "capacityUsages": []
+                      "priceLevels": {}
+                      "deliveryTax": 9000
+                      "takeawayTax": 9000
+                      "eatInTax": 9000
+                      "_links":
+                        "self":
+                          "title": "products"
+                          "href": "products/622fd8b4ac990eb2eb7dc275"
+                        "related":
+                          "subProducts":
+                            -
+                              "title": "products"
+                              "href": "products/622fd8b4ac990eb2eb7dc283"
+                            -
+                              "title": "products"
+                              "href": "products/622fd8b4ac990eb2eb7dc285"
+                            -
+                              "title": "products"
+                              "href": "products/622fd8b4ac990eb2eb7dc287"
+                    -
+                      "_id": "622fd8b4ac990eb2eb7dc277"
+                      "name": "French Fries"
+                      "description": "Plain fries from France"
+                      "nameTranslations": {}
+                      "descriptionTranslations": {}
+                      "_created": "2022-03-15T00:07:16.423000Z"
+                      "_updated": "2022-03-15T00:07:16.423000Z"
+                      "_etag": "77b6eef509fed9c3787dc17aa8cfe6bfe6915f9d"
+                      "account": "5ff6ee089328c8aefeeabe33"
+                      "location": "5ff6ee659328c8aefeeac2a7"
+                      "productType": 1
+                      "plu": "P-FRS-S"
+                      "multiply": 1
+                      "posProductId": "POS-ID-023"
+                      "posProductCategoryId": ""
+                      "subProducts": []
+                      "productTags": []
+                      "posCategoryIds":
+                        - "FRS"
+                      "isInternal": false
+                      "max": 0
+                      "min": 0
+                      "sortOrder": 0
+                      "capacityUsages": []
+                      "price": 200
+                      "priceLevels": {}
+                      "deliveryTax": 9000
+                      "takeawayTax": 9000
+                      "eatInTax": 9000
+                      "_links":
+                        "self":
+                          "title": "products"
+                          "href": "products/622fd8b4ac990eb2eb7dc277"
+                    -
+                      "_id": "622fd8b4ac990eb2eb7dc27d"
+                      "name": "Chicken Burger"
+                      "description": "Crispy coated chicken thigh, iceberg lettuce, pickles, slice of cheese & mayo, all in a toasted brioche bun."
+                      "nameTranslations": {}
+                      "descriptionTranslations": {}
+                      "_created": "2022-03-15T00:07:16.424000Z"
+                      "_updated": "2022-03-15T00:07:16.424000Z"
+                      "_etag": "f123a4c0c5a34ac30e132d965f25345779f12024"
+                      "account": "5ff6ee089328c8aefeeabe33"
+                      "location": "5ff6ee659328c8aefeeac2a7"
+                      "productType": 1
+                      "plu": "P-BURG-CHK"
+                      "multiply": 1
+                      "posProductId": "POS-ID-026"
+                      "posProductCategoryId": ""
+                      "subProducts": []
+                      "productTags": []
+                      "posCategoryIds":
+                        - "BURG"
+                      "imageUrl": "https://storage.googleapis.com/ikona-bucket-staging/images/5ff6ee089328c8aefeeabe33/chkburger-6228c1dcdb5986001ebf58df.jpeg"
+                      "isInternal": false
+                      "max": 0
+                      "min": 0
+                      "sortOrder": 0
+                      "capacityUsages": []
+                      "price": 800
+                      "priceLevels": {}
+                      "deliveryTax": 9000
+                      "takeawayTax": 9000
+                      "eatInTax": 9000
+                      "_links":
+                        "self":
+                          "title": "products"
+                          "href": "products/622fd8b4ac990eb2eb7dc27d"
+                    -
+                      "_id": "622fd8b4ac990eb2eb7dc287"
+                      "name": "Ginger Beer"
+                      "description": "Australia's favourite ginger beer!"
+                      "nameTranslations": {}
+                      "descriptionTranslations": {}
+                      "_created": "2022-03-15T00:07:16.424000Z"
+                      "_updated": "2022-03-15T00:07:16.424000Z"
+                      "_etag": "62bb35e3c3f2a5e6f7459d8a5d3ee756b29b6d7c"
+                      "account": "5ff6ee089328c8aefeeabe33"
+                      "location": "5ff6ee659328c8aefeeac2a7"
+                      "productType": 1
+                      "plu": "DRNK-03"
+                      "multiply": 1
+                      "posProductId": "POS-ID-031"
+                      "posProductCategoryId": ""
+                      "subProducts": []
+                      "productTags": []
+                      "posCategoryIds":
+                        - "DRK"
+                      "imageUrl": "https://storage.googleapis.com/ikona-bucket-staging/images/5ff6ee089328c8aefeeabe33/gingerbeer-62285548db5986001ebf58d1.jpg"
+                      "isInternal": false
+                      "max": 0
+                      "min": 0
+                      "sortOrder": 0
+                      "capacityUsages": []
+                      "price": 400
+                      "bottleDepositPrice": 100
+                      "priceLevels": {}
+                      "deliveryTax": 9000
+                      "takeawayTax": 9000
+                      "eatInTax": 9000
+                      "_links":
+                        "self":
+                          "title": "products"
+                          "href": "products/622fd8b4ac990eb2eb7dc287"
+                    -
+                      "_id": "622fd8b4ac990eb2eb7dc28d"
+                      "name": "Mini Poke Bowl"
+                      "description": "A little bowl of Poke"
+                      "nameTranslations": {}
+                      "descriptionTranslations": {}
+                      "_created": "2022-03-15T00:07:16.424000Z"
+                      "_updated": "2022-03-15T00:07:16.424000Z"
+                      "_etag": "f4c1a3f3fb705345ef489c904c93cd158ec06a49"
+                      "account": "5ff6ee089328c8aefeeabe33"
+                      "location": "5ff6ee659328c8aefeeac2a7"
+                      "productType": 1
+                      "plu": "SZ-01"
+                      "multiply": 1
+                      "posProductId": "POS-ID-034"
+                      "posProductCategoryId": ""
+                      "subProducts":
+                        - "622fd8b4ac990eb2eb7dc293"
+                      "productTags": []
+                      "posCategoryIds": []
+                      "isInternal": false
+                      "max": 0
+                      "min": 0
+                      "sortOrder": 0
+                      "capacityUsages": []
+                      "price": 800
+                      "priceLevels": {}
+                      "deliveryTax": 9000
+                      "takeawayTax": 9000
+                      "eatInTax": 9000
+                      "_links":
+                        "self":
+                          "title": "products"
+                          "href": "products/622fd8b4ac990eb2eb7dc28d"
+                        "related":
+                          "subProducts":
+                            -
+                              "title": "products"
+                              "href": "products/622fd8b4ac990eb2eb7dc293"
+                    -
+                      "_id": "622fd8b4ac990eb2eb7dc28f"
+                      "name": "Large Poke Bowl"
+                      "description": "A big bowl of Poke"
+                      "nameTranslations": {}
+                      "descriptionTranslations": {}
+                      "_created": "2022-03-15T00:07:16.424000Z"
+                      "_updated": "2022-03-15T00:07:16.424000Z"
+                      "_etag": "542f83a681b422a0ff3f345a387280fd0a0d5c45"
+                      "account": "5ff6ee089328c8aefeeabe33"
+                      "location": "5ff6ee659328c8aefeeac2a7"
+                      "productType": 1
+                      "plu": "SZ-02"
+                      "multiply": 1
+                      "posProductId": "POS-ID-035"
+                      "posProductCategoryId": ""
+                      "subProducts":
+                        - "622fd8b4ac990eb2eb7dc295"
+                      "productTags": []
+                      "posCategoryIds": []
+                      "isInternal": false
+                      "max": 0
+                      "min": 0
+                      "sortOrder": 0
+                      "capacityUsages": []
+                      "price": 1200
+                      "priceLevels": {}
+                      "deliveryTax": 9000
+                      "takeawayTax": 9000
+                      "eatInTax": 9000
+                      "_links":
+                        "self":
+                          "title": "products"
+                          "href": "products/622fd8b4ac990eb2eb7dc28f"
+                        "related":
+                          "subProducts":
+                            -
+                              "title": "products"
+                              "href": "products/622fd8b4ac990eb2eb7dc295"
+                    -
+                      "_id": "622fd8b4ac990eb2eb7dc291"
+                      "name": "Choose Your Base"
+                      "description": ""
+                      "nameTranslations": {}
+                      "descriptionTranslations": {}
+                      "_created": "2022-03-15T00:07:16.424000Z"
+                      "_updated": "2022-03-15T00:07:16.424000Z"
+                      "_etag": "8cd586d4610a753e9d2748467d6f911d39b73740"
+                      "account": "5ff6ee089328c8aefeeabe33"
+                      "location": "5ff6ee659328c8aefeeac2a7"
+                      "productType": 4
+                      "plu": "BNDL-01"
+                      "multiply": 1
+                      "posProductId": "POS-ID-036"
+                      "posProductCategoryId": ""
+                      "subProducts":
+                        - "622fd8b4ac990eb2eb7dc299"
+                        - "622fd8b4ac990eb2eb7dc29b"
+                      "productTags": []
+                      "posCategoryIds": []
+                      "isInternal": false
+                      "max": 1
+                      "min": 1
+                      "sortOrder": 0
+                      "capacityUsages": []
+                      "priceLevels": {}
+                      "deliveryTax": 6000
+                      "takeawayTax": 6000
+                      "_links":
+                        "self":
+                          "title": "products"
+                          "href": "products/622fd8b4ac990eb2eb7dc291"
+                        "related":
+                          "subProducts":
+                            -
+                              "title": "products"
+                              "href": "products/622fd8b4ac990eb2eb7dc299"
+                            -
+                              "title": "products"
+                              "href": "products/622fd8b4ac990eb2eb7dc29b"
+                    -
+                      "_id": "622fd8b4ac990eb2eb7dc293"
+                      "name": "Choose Your Protein"
+                      "description": ""
+                      "nameTranslations": {}
+                      "descriptionTranslations": {}
+                      "_created": "2022-03-15T00:07:16.424000Z"
+                      "_updated": "2022-03-15T00:07:16.424000Z"
+                      "_etag": "fb449d2323d61657c1ba8bc94db1132d56eda269"
+                      "account": "5ff6ee089328c8aefeeabe33"
+                      "location": "5ff6ee659328c8aefeeac2a7"
+                      "productType": 4
+                      "plu": "BNDL-01-SML"
+                      "multiply": 1
+                      "posProductId": "POS-ID-037"
+                      "posProductCategoryId": ""
+                      "subProducts":
+                        - "622fd8b4ac990eb2eb7dc29d"
+                        - "622fd8b4ac990eb2eb7dc29f"
+                        - "622fd8b4ac990eb2eb7dc2a1"
+                      "productTags": []
+                      "posCategoryIds": []
+                      "isInternal": false
+                      "max": 1
+                      "min": 1
+                      "sortOrder": 0
+                      "capacityUsages": []
+                      "priceLevels": {}
+                      "deliveryTax": 6000
+                      "takeawayTax": 6000
+                      "_links":
+                        "self":
+                          "title": "products"
+                          "href": "products/622fd8b4ac990eb2eb7dc293"
+                        "related":
+                          "subProducts":
+                            -
+                              "title": "products"
+                              "href": "products/622fd8b4ac990eb2eb7dc29d"
+                            -
+                              "title": "products"
+                              "href": "products/622fd8b4ac990eb2eb7dc29f"
+                            -
+                              "title": "products"
+                              "href": "products/622fd8b4ac990eb2eb7dc2a1"
+                    -
+                      "_id": "622fd8b4ac990eb2eb7dc295"
+                      "name": "Choose Your Protein"
+                      "description": ""
+                      "nameTranslations": {}
+                      "descriptionTranslations": {}
+                      "_created": "2022-03-15T00:07:16.424000Z"
+                      "_updated": "2022-03-15T00:07:16.424000Z"
+                      "_etag": "9bb1989fc9d54146b320cc693f87ef5d42a1cd1b"
+                      "account": "5ff6ee089328c8aefeeabe33"
+                      "location": "5ff6ee659328c8aefeeac2a7"
+                      "productType": 4
+                      "plu": "BNDL-LG"
+                      "multiply": 1
+                      "posProductId": "POS-ID-038"
+                      "posProductCategoryId": ""
+                      "subProducts":
+                        - "622fd8b4ac990eb2eb7dc29d"
+                        - "622fd8b4ac990eb2eb7dc29f"
+                        - "622fd8b4ac990eb2eb7dc2a1"
+                      "productTags": []
+                      "posCategoryIds": []
+                      "isInternal": false
+                      "max": 1
+                      "min": 1
+                      "sortOrder": 0
+                      "capacityUsages": []
+                      "priceLevels": {}
+                      "deliveryTax": 9000
+                      "takeawayTax": 9000
+                      "eatInTax": 9000
+                      "_links":
+                        "self":
+                          "title": "products"
+                          "href": "products/622fd8b4ac990eb2eb7dc295"
+                        "related":
+                          "subProducts":
+                            -
+                              "title": "products"
+                              "href": "products/622fd8b4ac990eb2eb7dc29d"
+                            -
+                              "title": "products"
+                              "href": "products/622fd8b4ac990eb2eb7dc29f"
+                            -
+                              "title": "products"
+                              "href": "products/622fd8b4ac990eb2eb7dc2a1"
+                    -
+                      "_id": "622fd8b4ac990eb2eb7dc29f"
+                      "name": "Spicy Tuna"
+                      "description": ""
+                      "nameTranslations": {}
+                      "descriptionTranslations": {}
+                      "_created": "2022-03-15T00:07:16.425000Z"
+                      "_updated": "2022-03-15T00:07:16.425000Z"
+                      "_etag": "68ed7cc40d43e2236ea9e75da897653a3f3c77d4"
+                      "account": "5ff6ee089328c8aefeeabe33"
+                      "location": "5ff6ee659328c8aefeeac2a7"
+                      "productType": 1
+                      "plu": "PRT-02"
+                      "multiply": 1
+                      "posProductId": "POS-ID-043"
+                      "posProductCategoryId": ""
+                      "subProducts": []
+                      "productTags": []
+                      "posCategoryIds": []
+                      "isInternal": false
+                      "max": 0
+                      "min": 0
+                      "sortOrder": 0
+                      "capacityUsages": []
+                      "price": 0
+                      "priceLevels": {}
+                      "deliveryTax": 9000
+                      "takeawayTax": 9000
+                      "eatInTax": 9000
+                      "_links":
+                        "self":
+                          "title": "products"
+                          "href": "products/622fd8b4ac990eb2eb7dc29f"
+                    -
+                      "_id": "622fd8b4ac990eb2eb7dc2a1"
+                      "name": "Teriyaki Chicken"
+                      "description": ""
+                      "nameTranslations": {}
+                      "descriptionTranslations": {}
+                      "_created": "2022-03-15T00:07:16.429000Z"
+                      "_updated": "2022-03-15T00:07:16.429000Z"
+                      "_etag": "584dacd4970848bffb6513e1826f2ae26fb23f83"
+                      "account": "5ff6ee089328c8aefeeabe33"
+                      "location": "5ff6ee659328c8aefeeac2a7"
+                      "productType": 1
+                      "plu": "PRT-03"
+                      "multiply": 1
+                      "posProductId": "POS-ID-044"
+                      "posProductCategoryId": ""
+                      "subProducts": []
+                      "productTags": []
+                      "posCategoryIds": []
+                      "isInternal": false
+                      "max": 0
+                      "min": 0
+                      "sortOrder": 0
+                      "capacityUsages": []
+                      "price": 0
+                      "priceLevels": {}
+                      "deliveryTax": 9000
+                      "takeawayTax": 9000
+                      "eatInTax": 9000
+                      "_links":
+                        "self":
+                          "title": "products"
+                          "href": "products/622fd8b4ac990eb2eb7dc2a1"
+                  "_links":
+                    "parent":
+                      "title": "home"
+                      "href": "/"
+                    "self":
+                      "title": "products"
+                      "href": "products?where={account:5ff6ee089328c8aefeeabe33"
+                  "next":
+                    "title": "next page"
+                    "href": "products?where={account:5ff6ee089328c8aefeeabe33}&page=2"
+                  "last":
+                    "title": "last page"
+                    "href": "products?where={account:5ff6ee089328c8aefeeabe33}&page=3"
+                "_meta":
+                  "page": 1
+                  "max_results": 25
+                  "total": 64
+  "/channelDisabledProducts":
+    "get":
+      "tags":
+        - "Store API > Deliverect Endpoints"
+      "summary": "Get products marked out of stock"
+      "description": "Get products marked out of stock."
+      "parameters":
+        -
+          "name": "Content-Type"
+          "in": "header"
+          "schema":
+            "type": "string"
+          "example": "application/json"
+        -
+          "name": "where"
+          "in": "query"
+          "schema":
+            "type": "string"
+          "example":
+            "account": "account_id"
+            "location": "location_id"
+      "responses":
+        "default":
+          "description": "default"
+          "headers":
+            "Content-Type":
+              "schema":
+                "type": "string"
+                "example": "application/json"
+          "content":
+            "application/json":
+              "schema":
+                "type": "object"
+              "example":
+                "_items":
+                  -
+                    "_id": "612***2cf"
+                    "_created": "2021-08-30T11:41:09.077000Z"
+                    "_updated": "2021-08-30T11:53:09.000000Z"
+                    "_etag": "19358d3fb0b1cdb2cf96fa71f7c21abda863b00f"
+                    "account": "60e***945"
+                    "channel": -1
+                    "location": "60e***96a"
+                    "plu": "VAR-PROD-1"
+                    "name": "Pinapple pizza"
+                    "deliverectProductId": "610***b73"
+                    "snoozeStart": "2021-08-30T11:41:09Z"
+                    "snoozeEnd": "2021-08-30T11:53:09Z"
+                    "isBogof": false
+                    "isInBundle": false
+                    "channelLinks":
+                      - "60e***a37"
+                    "_links":
+                      "self":
+                        "title": "channelDisabledProducts"
+                        "href": "channelDisabledProducts/612***2cf"
+                  -
+                    "_id": "612***298"
+                    "_created": "2021-08-30T14:31:19Z"
+                    "_updated": "2021-08-30T14:31:19Z"
+                    "_etag": "f839b4936adbaa034358bc669abe75cfdbb80964"
+                    "account": "60e***945"
+                    "channel": -1
+                    "location": "60e***96a"
+                    "plu": "MOD555"
+                    "name": "Ice"
+                    "deliverectProductId": "612***e8d"
+                    "snoozeStart": "2021-08-30T14:31:19Z"
+                    "snoozeEnd": "2021-08-30T15:31:19Z"
+                    "isBogof": false
+                    "isInBundle": false
+                    "channelLinks":
+                      - "60e***a37"
+                      - "612***204"
+                    "_links":
+                      "self":
+                        "title": "channelDisabledProducts"
+                        "href": "channelDisabledProducts/612***298"
+                  -
+                    "_id": "613***6a3"
+                    "_created": "2021-09-03T13:09:48Z"
+                    "_updated": "2021-09-03T13:09:48Z"
+                    "_etag": "6f5e942de36140f6825c7f69695f94a464bcab4e"
+                    "account": "60e***945"
+                    "channel": -1
+                    "location": "60e***96a"
+                    "plu": "PR2"
+                    "name": "Cola"
+                    "deliverectProductId": "60e4***f62"
+                    "snoozeStart": "2021-08-18T11:13:00Z"
+                    "snoozeEnd": "2021-09-03T13:17:48Z"
+                    "isBogof": false
+                    "isInBundle": false
+                    "channelLinks":
+                      - "60e***a37"
+                      - "612***204"
+                      - "613***31c"
+                    "_links":
+                      "self":
+                        "title": "channelDisabledProducts"
+                        "href": "channelDisabledProducts/613***6a3"
+                "_links":
+                  "parent":
+                    "title": "home"
+                    "href": "/"
+                  "self":
+                    "title": "channelDisabledProducts"
+                    "href": "channelDisabledProducts?where={ account: {{account_id}}, location: {{location_id}}"
+                "_meta":
+                  "page": 1
+                  "max_results": 25
+                  "total": 9
+  "/products/snoozeByTags":
+    "post":
+      "tags":
+        - "Store API > Deliverect Endpoints"
+      "summary": "Mark products out of stock by tag"
+      "description": "Mark products out of stock for a certain amount of time based on their tag and location. You can use the same call to unsnooze product passing `snoozeEnd` time in the past. ##### NOTE Please note, that here and later all dates and times, coming from/to Deliverect are UTC."
+      "requestBody":
+        "content":
+          "application/json":
+            "schema":
+              "type": "object"
+              "example":
+                "account": "{{account_id}}"
+                "location": "{{location_id}}"
+                "tags":
+                  - 1
+                "snoozeStart": "2019-03-06T15:45:00.000Z"
+                "snoozeEnd": "2019-03-07T15:45:00.000Z"
+      "responses":
+        "default":
+          "description": "default"
+          "content":
+            "text/plain":
+              "schema":
+                "type": "string"
+              "examples":
+                "example-0":
+                  "summary": "Single tag for all locations"
+                  "value": null
+                "example-1":
+                  "summary": "Single tag for one location"
+                  "value": null
+                "example-2":
+                  "summary": "Multiple tags for all locations"
+                  "value": null
+                "example-3":
+                  "summary": "Multiple tag for one location"
+                  "value": null
+  "/products/snoozeByPlus":
+    "post":
+      "tags":
+        - "Store API > Deliverect Endpoints"
+      "summary": "Mark products out of stock by PLU"
+      "description": "Mark products out of stock for a certain amount of time based on their PLU and location. You can use the same call to unsnooze product passing `snoozeEnd` time in the past."
+      "requestBody":
+        "content":
+          "application/json":
+            "schema":
+              "type": "object"
+              "example":
+                "account": "{{account_id}}"
+                "location": "{{location_id}}"
+                "plus":
+                  - "PLU1"
+                "snoozeStart": "2019-03-06T15:45:00.000Z"
+                "snoozeEnd": "2019-03-07T15:45:00.000Z"
+      "responses":
+        "default":
+          "description": "default"
+          "content":
+            "text/plain":
+              "schema":
+                "type": "string"
+              "examples":
+                "example-0":
+                  "summary": "Multiple PLUs across all locations"
+                  "value": null
+                "example-1":
+                  "summary": "Multiple PLUs for one location"
+                  "value": null
+                "example-2":
+                  "summary": "Single PLU for one location"
+                  "value": null
+                "example-3":
+                  "summary": "Single PLU across all locations"
+                  "value": null
+  "/updateStoreStatus/{locationId}":
+    "post":
+      "tags":
+        - "Store API > Deliverect Endpoints"
+      "summary": "Update Store Status"
+      "description": "This endpoint allows a POS to update store status. One, several or all channel links can be put in busy/online mode(should be supported by channels as well) by calling this endpoint. When sending a call to the endpoint make sure it includes `isActive` flag which indicates if store busy/online. Optional parameter `channelLinks` allwos you to specify a list of channel links to be put in busy/online mode. Otherwise all location channel links will be put in busy/online mode. As a payload we always expect a JSON that contains: * Flag that indicates if store is busy/online (`isActive`) * [Optional] Array of channel link ids to be put in busy/online more (`channelLink`)"
+      "requestBody":
+        "content":
+          "application/json":
+            "schema":
+              "type": "object"
+              "example":
+                "isActive": true
+                "channelLinks":
+                  - "606d8489f****ddf13b****6"
+      "parameters":
+        -
+          "name": "locationId"
+          "in": "path"
+          "schema":
+            "type": "string"
+          "required": true
+      "responses":
+        "200":
+          "description": "OK"
+          "content":
+            "text/plain":
+              "schema":
+                "type": "string"
+              "example": null
+        "400":
+          "description": "Bad Request"
+          "content":
+            "application/json":
+              "schema":
+                "type": "object"
+              "example":
+                "errors":
+                  - "Channel Link 606d8489f****ddf13b****6 failed to update status"
+  "/location/{locationId}/openingHours":
+    "get":
+      "tags":
+        - "Store API > Deliverect Endpoints"
+      "summary": "Get Store Opening Hours"
+      "parameters":
+        -
+          "name": "locationId"
+          "in": "path"
+          "schema":
+            "type": "string"
+          "required": true
+      "responses":
+        "200":
+          "description": "Successful response"
+          "content":
+            "application/json": {}
+  "/account/{accountId}/openingHours":
+    "get":
+      "tags":
+        - "Store API > Deliverect Endpoints"
+      "summary": "Get Account Opening Hours"
+      "parameters":
+        -
+          "name": "accountId"
+          "in": "path"
+          "schema":
+            "type": "string"
+          "required": true
+      "responses":
+        "200":
+          "description": "Successful response"
+          "content":
+            "application/json": {}
+  "/locations/openingHours":
+    "post":
+      "tags":
+        - "Store API > Deliverect Endpoints"
+      "summary": "Create/Update Opening Hours"
+      "requestBody":
+        "content": {}
+      "responses":
+        "default":
+          "description": "default"
+          "content":
+            "text/plain":
+              "schema":
+                "type": "string"
+              "examples":
+                "example-0":
+                  "summary": "Channel Specific Hours"
+                  "value": null
+                "example-1":
+                  "summary": "Location Specific Hours"
+                  "value": null
+                "example-2":
+                  "summary": "Location and Channel Hours"
+                  "value": null
+  "/locations/holidays":
+    "post":
+      "tags":
+        - "Store API > Deliverect Endpoints"
+      "summary": "Holiday Hours for Locations"
+      "requestBody":
+        "content": {}
+      "responses":
+        "default":
+          "description": "default"
+          "content":
+            "text/plain":
+              "schema":
+                "type": "string"
+              "example": null
+  "/location/{locationId}/holidays":
+    "get":
+      "tags":
+        - "Store API > Deliverect Endpoints"
+      "summary": "Holiday Hours for Locations"
+      "parameters":
+        -
+          "name": "locationId"
+          "in": "path"
+          "schema":
+            "type": "string"
+          "required": true
+      "responses":
+        "200":
+          "description": "Successful response"
+          "content":
+            "application/json": {}
+  "/locations/channels/{locationId}/holidays":
+    "get":
+      "tags":
+        - "Store API > Deliverect Endpoints"
+      "summary": "Holiday Hours for Locations & ChannelLinks"
+      "parameters":
+        -
+          "name": "locationId"
+          "in": "path"
+          "schema":
+            "type": "string"
+          "required": true
+      "responses":
+        "200":
+          "description": "Successful response"
+          "content":
+            "application/json": {}
+  "/locations/channels/holidays":
+    "post":
+      "tags":
+        - "Store API > Deliverect Endpoints"
+      "summary": "Holiday Hours for Locations and ChannelLinks"
+      "requestBody":
+        "content":
+          "application/json":
+            "schema":
+              "type": "object"
+              "example":
+                "locations":
+                  -
+                    "id": "someLocationId"
+                    "channels":
+                      -
+                        "id": "someChannelLinkId"
+                        "holidays":
+                          -
+                            "startTime": "2021-12-19T15:53:00Z"
+                            "endTime": "2021-12-19T16:10:00Z"
+                          -
+                            "startTime": "2022-05-18T04:00:00Z"
+                            "endTime": "2022-05-18T05:00:00Z"
+                          -
+                            "startTime": "2022-05-17T17:37:00Z"
+                            "endTime": "2022-05-17T17:39:00Z"
+                          -
+                            "startTime": "2023-08-04T09:00:00Z"
+                            "endTime": "2023-08-04T19:00:00Z"
+      "responses":
+        "default":
+          "description": "default"
+          "content":
+            "text/plain":
+              "schema":
+                "type": "string"
+              "example": null
+  "/kds/orderStatus/{orderId}":
+    "post":
+      "tags":
+        - "KDS API > Deliverect Endpoint"
+      "summary": "Update Order Status"
+      "requestBody":
+        "content":
+          "application/json":
+            "schema":
+              "type": "object"
+              "example":
+                "orderId": "6239****835f"
+                "status": 50
+                "reason": "Order is being prepared."
+      "parameters":
+        -
+          "name": "orderId"
+          "in": "path"
+          "schema":
+            "type": "string"
+          "required": true
+      "responses":
+        "200":
+          "description": "Successful response"
+          "content":
+            "application/json": {}
+  "/snoozeByTags":
+    "post":
+      "tags":
+        - "KDS API > Deliverect Endpoint"
+      "summary": "Mark products out of stock by tag"
+      "description": "Mark products out of stock for a certain amount of time based on their tag and location. You can use the same call to unsnooze product passing `snoozeEnd` time in the past. ##### NOTE Please note, that here and later all dates and times, coming from/to Deliverect are UTC."
+      "requestBody":
+        "content":
+          "application/json":
+            "schema":
+              "type": "object"
+              "example":
+                "account": "{{account_id}}"
+                "location": "{{location_id}}"
+                "tags":
+                  - 1
+                "snoozeStart": "2019-03-06T15:45:00.000Z"
+                "snoozeEnd": "2019-03-07T15:45:00.000Z"
+      "responses":
+        "default":
+          "description": "default"
+          "content":
+            "text/plain":
+              "schema":
+                "type": "string"
+              "examples":
+                "example-0":
+                  "summary": "Single tag for all locations"
+                  "value": null
+                "example-1":
+                  "summary": "Single tag for one location"
+                  "value": null
+                "example-2":
+                  "summary": "Multiple tags for all locations"
+                  "value": null
+                "example-3":
+                  "summary": "Multiple tag for one location"
+                  "value": null
+"x-readme":
+  "explorer-enabled": true
+  "proxy-enabled": true
