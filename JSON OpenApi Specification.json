@@ -1,7 +1,7 @@
 {
   "openapi": "3.0.0",
   "info": {
-    "title": "Run in Postman",
+    "title": "Deliverect Public API",
     "description": "### [https://developers.deliverect.com](https://developers.deliverect.com) Deliverect allows restaurants to directly connect channels like UberEats, Takeaway.com, Glovo and others with their POS system. More info on features and platforms supported on [https://deliverect.com/](https://deliverect.com/) This API can be used to integrate additional channels or POS systems, but also by bigger restaurants to help them with reporting and stock management Please fill in this [form](https://www.deliverect.com/en-be/become-a-partner) if you would like to start your integration with Deliverect. We are looking forward to welcoming you as a partner! --- For any webhooks that we call, you can use whitelisting. The prefered way is to whitelist our domains, since that allows us to add/change IPs without impacting you. But currently these are the IPs we use Production: You will be sending data to this IP Incoming: 104.155.92.129, 34.77.203.223 Your endpoint will receive calls from these IP's Outgoing: 35.241.160.154, 35.241.180.107, 104.199.82.58, 34.79.19.218 Staging: Incoming: 34.76.5.55 Outgoing: 35.205.49.4, 35.195.152.77, 34.77.114.185 --- If building an integration with us, please make sure your code can potentially support several environments/endpoints with different sets of client id/secret and different HMAC secrets. Your integration should also be able to identify to which environment customer belongs(i.e. environment1.api.deliverect.com, environment2.api.deliverect.com, etc.) and send requests appropriately. ---",
     "version": "1.0.0"
   },
